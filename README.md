@@ -1,65 +1,66 @@
 # Vello Parcelamentos
 
-Plataforma de parcelamento no Pix para lojistas.
+Aplicação Next.js para gestão de links de parcelamento, parcelas, suporte e solicitações de saque com dados persistidos no Supabase.
 
-## Executar
+## Execução local
 
 ```bash
-# Opção 1 — servir a aplicação completa diretamente
-npx serve public
-
-# Opção 2 — via Next.js
+cp .env.example .env.local
 npm install
+npm test
+npm run build
 npm run dev
 ```
 
-Acesse a aplicação em `/index.html` (ou pela raiz, que redireciona automaticamente).
+Abra `http://localhost:3000`. A rota `/index.html` redireciona para a aplicação principal.
 
-## Estrutura
+## Variáveis de ambiente
 
-- `public/index.html` — Aplicação completa (área do lojista, checkout e administração)
-- `src/` — Estrutura Next.js preparada para evolução e integração futura
-- `docs/` — Arquitetura, preparação para banco de dados e plano de integração NexusPag
+Obrigatórias para autenticação no frontend:
 
-## Funcionalidades
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
-**Área do lojista**
-- Login e cadastro
-- Dashboard com saldos e indicadores
-- Criação de links de parcelamento (1x a 10x)
-- Gestão de vendas e parcelas
-- Pagamentos
-- Solicitação de saques
-- Perfil e suporte
+Necessárias apenas no servidor para checkout público, saques e administração:
 
-**Checkout público**
-- Resumo da compra
-- Geração de código Pix de exemplo
-- Confirmação de pagamento de exemplo
-- Estados de link inválido e expirado
+- `SUPABASE_URL` (pode usar a URL pública se for o mesmo projeto)
+- `SUPABASE_SERVICE_ROLE_KEY`
 
-**Administração**
-- Painel de indicadores
-- Gestão de usuários
-- Aprovação e rejeição de saques
-- Modo de manutenção
+Necessárias para criação de cobranças e validação de webhooks NexusPag:
 
-## Aviso importante
+- `NEXUSPAG_API_KEY`
+- `NEXUSPAG_WEBHOOK_SECRET`
+- `APP_URL` (URL HTTPS pública usada para registrar o webhook)
 
-Esta versão utiliza dados locais de exemplo. Não processa pagamentos reais, não realiza transferências e não possui autenticação de produção.
+Nunca defina a chave `service_role` em variáveis `NEXT_PUBLIC_*`, arquivos públicos ou commits.
 
-Para uso em produção é necessário:
-- Backend e banco de dados
-- Autenticação e autorização reais
-- Integração validada com NexusPag (ver `docs/nexuspag-integration.md`)
-- Configuração de webhooks e segurança financeira
+## Rotas principais
+
+- `/` — cadastro, login, recuperação de senha e painel do lojista.
+- `/checkout/[token]` — consulta mínima do link e fluxo de criação de Pix da primeira parcela.
+- `/admin` — painel administrativo, acessível somente a usuários incluídos em `private.app_admins`.
+- `/api/withdrawals` — solicitação autenticada de saque com validação transacional de saldo líquido confirmado.
+- `/api/webhooks/nexuspag` — webhook HMAC verificado, com processamento idempotente no banco.
+
+## Migrações
+
+As migrações incrementais estão em `supabase/migrations/`. As migrações para processamento de webhook, saques, cancelamento de links e ações administrativas foram aplicadas ao projeto Supabase conectado durante a implementação. Confirme sempre o histórico de migrações antes de aplicar os arquivos novamente em outro ambiente.
+
+Consulte [Cadastro seguro do primeiro administrador](docs/admin-bootstrap.md) antes de habilitar a administração.
+
+## Limitações importantes
+
+- A build e os testes são validados pelo workflow GitHub Actions; veja o estado mais recente antes de publicar.
+- O checkout gera cobrança real apenas quando as credenciais NexusPag e as variáveis privadas estiverem configuradas no ambiente de servidor.
+- A confirmação de pagamento depende de webhook autenticado e da função transacional aplicada ao Supabase.
+- Aprovar um saque registra a decisão e o responsável; não executa a transferência Pix. O processamento de transferências permanece manual e não deve ser apresentado como automático.
+- O painel administrativo lista até 100 registros por categoria.
+- A aplicação ainda não deve ser considerada pronta para produção financeira até que a implantação seja verificada, as credenciais sejam configuradas com segurança e os fluxos de pagamento/saque sejam testados em sandbox com o provedor.
 
 ## Documentação
 
 - [Arquitetura](docs/architecture.md)
-- [Preparação para banco de dados](docs/database-readiness.md)
+- [Conexão com banco de dados](docs/database-connection.md)
+- [Prontidão do banco](docs/database-readiness.md)
 - [Integração NexusPag](docs/nexuspag-integration.md)
-
----
-
-Vello Parcelamentos
+- [Cadastro do administrador](docs/admin-bootstrap.md)
