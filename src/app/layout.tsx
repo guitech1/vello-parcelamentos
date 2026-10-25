@@ -1,26 +1,11 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-});
 
 export const metadata: Metadata = {
   title: 'Vello Parcelamentos',
-  description:
-    'Plataforma de parcelamento no Pix para lojistas. Demonstração frontend completa.',
+  description: 'Gestão de links de parcelamento para lojistas, com autenticação e dados isolados por conta.',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="pt-BR">
-      <body className={`${inter.variable} antialiased`}>{children}</body>
-    </html>
-  );
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <html lang="pt-BR"><body>{children}</body></html>;
 }
