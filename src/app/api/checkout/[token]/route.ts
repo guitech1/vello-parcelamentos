@@ -20,7 +20,7 @@ export async function GET(_request: Request, context: { params: Promise<{ token:
   });
   const { data, error } = await admin
     .from('payment_links')
-    .select('description,total_amount,installment_count,status,expires_at')
+    .select('id,description,total_amount,installment_count,status,expires_at')
     .eq('public_token', token)
     .eq('status', 'active')
     .maybeSingle();
@@ -32,10 +32,21 @@ export async function GET(_request: Request, context: { params: Promise<{ token:
     return NextResponse.json({ error: 'Este link não existe, expirou ou foi encerrado.' }, { status: 404 });
   }
 
+  const { data: firstInstallment, error: installmentError } = await admin
+    .from('installments')
+    .select('amount')
+    .eq('payment_link_id', data.id)
+    .eq('installment_number', 1)
+    .maybeSingle();
+  if (installmentError || !firstInstallment) {
+    return NextResponse.json({ error: 'As parcelas deste link ainda não estão disponíveis.' }, { status: 503 });
+  }
+
   // Never return merchant IDs, payer details, payment records, or internal fields.
   return NextResponse.json({
     description: data.description,
     totalAmount: data.total_amount,
     installmentCount: data.installment_count,
+    firstInstallmentAmount: firstInstallment.amount,
   }, { headers: { 'Cache-Control': 'no-store' } });
 }
