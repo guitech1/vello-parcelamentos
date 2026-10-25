@@ -45,7 +45,7 @@ export default function Home() {
       supabase.from('payment_links').select('id,public_token,description,total_amount,installment_count,status,created_at').eq('merchant_id', currentUser.id).order('created_at', { ascending: false }).limit(50),
       supabase.from('installments').select('id,amount,status,due_at,installment_number').eq('merchant_id', currentUser.id).order('due_at', { ascending: true }).limit(100),
       supabase.from('support_tickets').select('id,subject,status,created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(50),
-      supabase.from('profiles').select('full_name,business_name,phone').eq('id', currentUser.id).maybeSingle(),
+      supabase.from('profiles').select('full_name,business_name,phone').eq('user_id', currentUser.id).maybeSingle(),
     ]);
     if (linkResult.error) setError('Não foi possível carregar os links. Verifique as políticas RLS e tente novamente.');
     else setLinks((linkResult.data ?? []) as LinkRow[]);
@@ -156,7 +156,7 @@ export default function Home() {
     if (!supabase || !user) return;
     if (!profileName.trim() || !profileBusiness.trim()) { setError('Informe seu nome e o nome da loja.'); return; }
     setBusy(true); setError(''); setNotice('');
-    const { error: updateError } = await supabase.from('profiles').update({ full_name: profileName.trim(), business_name: profileBusiness.trim(), phone: profilePhone.trim() || null }).eq('id', user.id);
+    const { error: updateError } = await supabase.from('profiles').update({ full_name: profileName.trim(), business_name: profileBusiness.trim(), phone: profilePhone.trim() || null }).eq('user_id', user.id);
     if (updateError) setError('Não foi possível salvar o perfil. Confira as permissões RLS.');
     else setNotice('Perfil atualizado.');
     setBusy(false);
