@@ -43,7 +43,8 @@ BEGIN
   WHERE user_id = p_merchant_id
   FOR UPDATE;
   IF NOT FOUND OR v_profile.account_status <> 'active'
-     OR length(trim(v_profile.pix_key)) = 0 THEN
+     OR length(trim(v_profile.pix_key)) = 0
+     OR v_profile.pix_key_type NOT IN ('cpf', 'cnpj', 'email', 'phone', 'random') THEN
     RETURN jsonb_build_object('ok', false, 'reason', 'profile_or_pix_key_unavailable');
   END IF;
 
