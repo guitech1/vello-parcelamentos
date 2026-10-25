@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
-import { parseBRLCents } from '@/lib/money';
+import { centsToDecimal, parseBRLCents } from '@/lib/money';
 
 type LinkRow = { id: string; public_token: string; description: string; total_amount: string | number; installment_count: number; status: string; created_at: string };
 type InstallmentRow = { id: string; amount: string | number; status: string; due_at: string; installment_number: number };
@@ -126,7 +126,7 @@ export default function Home() {
         merchant_id: user.id,
         public_token: crypto.randomUUID(),
         description: description.trim(),
-        total_amount: (cents / 100).toFixed(2),
+        total_amount: centsToDecimal(cents),
         installment_count: installmentsCount,
         status: 'active',
       });
@@ -156,7 +156,7 @@ export default function Home() {
     if (!supabase || !user) return;
     if (!profileName.trim() || !profileBusiness.trim()) { setError('Informe seu nome e o nome da loja.'); return; }
     setBusy(true); setError(''); setNotice('');
-    const { error: updateError } = await supabase.from('profiles').update({ full_name: profileName.trim(), business_name: profileBusiness.trim(), phone: profilePhone.trim() || null }).eq('user_id', user.id);
+    const { error: updateError } = await supabase.from('profiles').update({ full_name: profileName.trim(), business_name: profileBusiness.trim(), phone: profilePhone.trim() }).eq('user_id', user.id);
     if (updateError) setError('Não foi possível salvar o perfil. Confira as permissões RLS.');
     else setNotice('Perfil atualizado.');
     setBusy(false);
