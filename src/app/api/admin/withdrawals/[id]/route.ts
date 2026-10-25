@@ -8,6 +8,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const { id } = await context.params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) return NextResponse.json({ error: 'Solicitação inválida.' }, { status: 404 });
 
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    return NextResponse.json({ error: 'Autenticação não configurada no servidor.' }, { status: 503 });
+  }
   const sessionClient = await createServerClient();
   const { data: { user }, error: authError } = await sessionClient.auth.getUser();
   if (authError || !user) return NextResponse.json({ error: 'Autenticação necessária.' }, { status: 401 });
