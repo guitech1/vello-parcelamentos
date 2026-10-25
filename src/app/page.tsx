@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
+import { parseBRLCents } from '@/lib/money';
 
 type LinkRow = { id: string; public_token: string; description: string; total_amount: string | number; installment_count: number; status: string; created_at: string };
 type InstallmentRow = { id: string; amount: string | number; status: string; due_at: string; installment_number: number };
@@ -117,7 +118,7 @@ export default function Home() {
     const cents = Math.round(value * 100);
     const installmentsCount = Number(count);
     if (!description.trim()) { setError('Informe a descrição da cobrança.'); return; }
-    if (!Number.isSafeInteger(cents) || cents < 100 || cents > 100000000) { setError('Informe um valor entre R$ 1,00 e R$ 1.000.000,00.'); return; }
+    if (cents === null || !Number.isSafeInteger(cents) || cents < 100 || cents > 100000000) { setError('Informe um valor entre R$ 1,00 e R$ 1.000.000,00.'); return; }
     if (!Number.isInteger(installmentsCount) || installmentsCount < 1 || installmentsCount > 10) { setError('Escolha de 1 a 10 parcelas.'); return; }
     setBusy(true);
     try {
