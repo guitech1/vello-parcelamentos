@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 type Row = Record<string, string | number | null | undefined>;
@@ -61,7 +62,7 @@ export default function AdminPage() {
   </section>;
 
   return <main className="app-shell">
-    <header className="topbar"><div className="brand"><span className="brand-mark small-mark">V</span><span>Vello <b>Administração</b></span></div><a href="/">Voltar ao painel do lojista</a></header>
+    <header className="topbar"><div className="brand"><span className="brand-mark small-mark">V</span><span>Vello <b>Administração</b></span></div><Link href="/">Voltar ao painel do lojista</Link></header>
     <section className="content admin-content"><div className="page-heading"><div><p className="eyebrow">ACESSO RESTRITO</p><h1>Painel administrativo</h1><p className="muted">Dados limitados aos primeiros 100 registros de cada lista. Decisões ficam registradas com usuário e horário.</p></div><button className="secondary-button" onClick={() => void load()} disabled={loading}>Atualizar</button></div>
       {error && <p className="alert error" role="alert">{error}</p>}
       {loading && !data ? <section className="panel section-panel">Verificando permissões e carregando dados...</section> : data ? <>
