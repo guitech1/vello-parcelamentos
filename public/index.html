@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vello Parcelamentos</title>
+<style>
+/* ===== 1. DESIGN SYSTEM E VARIÁVEIS CSS ===== */
+:root{--g:#22C55E;--gd:#15803D;--gs:#DCFCE7;--bg:#F7F9F7;--sf:#FFFFFF;--tx:#111713;--t2:#66716A;--bd:#E5EAE6;
+--red:#B42318;--reds:#FEE4E2;--amb:#B54708;--ambs:#FEF0C7;--blu:#175CD3;--blus:#D1E9FF;--dk:#0C1F14;
+--r:12px;--rs:8px;--sh:0 1px 2px rgba(17,23,19,.06);--sp:16px;--side:240px;--font:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+*{box-sizing:border-box;margin:0}
+html{-webkit-text-size-adjust:100%}
+body{font:14px/1.5 var(--font);background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:var(--gd)}h1{font-size:22px;font-weight:650;letter-spacing:-.02em}h2{font-size:15px;font-weight:650}
+.mut{color:var(--t2)}.sm{font-size:12.5px}.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--gd);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* ===== 2. COMPONENTES VISUAIS ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 16px;border-radius:var(--rs);border:1px solid transparent;font:600 14px var(--font);cursor:pointer;transition:background .15s,border-color .15s;text-decoration:none;color:var(--tx);background:none}
+.btn-p{background:var(--g);color:#052E14}.btn-p:hover{background:#1DB655}
+.btn-s{background:var(--sf);border-color:var(--bd)}.btn-s:hover{background:var(--gs)}
+.btn-d{background:var(--reds);color:var(--red)}.btn-d:hover{background:#fdd3cf}
+.btn-sm{min-height:34px;padding:0 12px;font-size:13px}.btn[disabled]{opacity:.55;cursor:not-allowed}.btn-w{width:100%}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:20px;box-shadow:var(--sh);min-width:0}
+.grid{display:grid;gap:16px}.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))}.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr))}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.sb{justify-content:space-between}.stack>*+*{margin-top:16px}
+.f{display:flex;flex-direction:column;gap:6px}.f label{font-weight:550;font-size:13px}
+input,select,textarea{font:inherit;min-height:42px;width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--sf);color:var(--tx)}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--g);outline-offset:-1px;border-color:var(--g)}
+.f.bad input,.f.bad select,.f.bad textarea{border-color:var(--red)}.er{color:var(--red);font-size:12.5px;min-height:0}
+.fg{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))}
+.pw{position:relative}.pw input{padding-right:48px}.pw button{position:absolute;right:4px;top:4px;width:34px;height:34px;border:0;background:none;color:var(--t2);cursor:pointer;border-radius:6px}
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
+.b-ok{background:var(--gs);color:var(--gd)}.b-w{background:var(--ambs);color:var(--amb)}.b-bad{background:var(--reds);color:var(--red)}.b-i{background:var(--blus);color:var(--blu)}.b-m{background:#EEF1EE;color:var(--t2)}
+.kpi .l{color:var(--t2);font-size:13px}.kpi .v{font-size:24px;font-weight:650;letter-spacing:-.02em;margin-top:4px}.kpi .h{color:var(--t2);font-size:12.5px;margin-top:2px}
+.kpi.main{border-color:var(--g);background:linear-gradient(#fff,#F4FBF6)}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:12.5px;font-weight:600;color:var(--t2);padding:10px 12px;border-bottom:1px solid var(--bd);white-space:nowrap}
+td{padding:12px;border-bottom:1px solid var(--bd);vertical-align:middle}tr:last-child td{border-bottom:0}
+.tb{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}.tb input{flex:1 1 220px}.tb select{flex:0 1 180px}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:12px}
+.empty{text-align:center;padding:40px 16px;color:var(--t2)}.empty b{display:block;color:var(--tx);font-size:15px;margin-bottom:4px}
+.sk{height:44px;border-radius:8px;background:linear-gradient(90deg,#EEF1EE,#F7F9F7,#EEF1EE);background-size:200% 100%;animation:sk 1.2s infinite;margin-bottom:10px}
+@keyframes sk{to{background-position:-200% 0}}
+.note{background:var(--ambs);color:var(--amb);border-radius:var(--rs);padding:8px 12px;font-size:12.5px}
+.ok-box{background:var(--gs);color:var(--gd);border-radius:var(--rs);padding:12px 14px}
+.bars{display:flex;align-items:flex-end;gap:10px;height:140px}.bars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%;font-size:11.5px;color:var(--t2)}
+.bars i{display:block;width:100%;background:var(--g);border-radius:6px 6px 0 0;min-height:3px}
+.li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--bd)}.li:last-child{border:0}
+#toasts{position:fixed;right:16px;top:16px;z-index:99;display:flex;flex-direction:column;gap:8px;max-width:calc(100vw - 32px)}
+.toast{background:var(--tx);color:#fff;padding:12px 16px;border-radius:var(--rs);font-weight:550;box-shadow:0 6px 20px rgba(0,0,0,.18)}.toast.e{background:var(--red)}
+.ov{position:fixed;inset:0;background:rgba(12,31,20,.45);display:flex;align-items:center;justify-content:center;z-index:90;padding:16px}
+.dlg{background:var(--sf);border-radius:var(--r);padding:24px;width:100%;max-width:440px;max-height:90vh;overflow:auto}
+.dlg h2{font-size:17px;margin-bottom:8px}.dlg .act{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.menu{position:absolute;right:0;top:46px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rs);box-shadow:0 8px 24px rgba(0,0,0,.1);min-width:210px;padding:6px;z-index:30}
+.menu a,.menu button{display:block;width:100%;text-align:left;padding:10px 12px;border:0;background:none;font:inherit;border-radius:6px;cursor:pointer;color:var(--tx);text-decoration:none}.menu a:hover,.menu button:hover{background:var(--gs)}
+details{border-bottom:1px solid var(--bd);padding:12px 0}summary{cursor:pointer;font-weight:600}details p{margin-top:8px;color:var(--t2)}
+/* ===== 3. LAYOUTS E NAVEGAÇÃO ===== */
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:-.02em}
+.mark{width:30px;height:30px;border-radius:8px;background:var(--g);color:#052E14;display:grid;place-items:center;font-weight:800}/* LOGO: substituir .mark pela logo oficial */
+.shell{display:grid;grid-template-columns:var(--side) minmax(0,1fr);min-height:100vh}
+.side{background:var(--sf);border-right:1px solid var(--bd);padding:20px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px}
+.side .brand{padding:0 8px 18px}.nav{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--rs);color:var(--t2);text-decoration:none;font-weight:550}
+.nav:hover{background:var(--bg);color:var(--tx)}.nav.on{background:var(--gs);color:var(--gd)}.sp{flex:1}
+.side.adm{background:var(--dk);border-color:var(--dk)}.side.adm .brand{color:#fff}.side.adm .nav{color:#A9BFB0}.side.adm .nav:hover{background:#15301F;color:#fff}.side.adm .nav.on{background:#1B3D28;color:#86EFAC}
+.main{padding:24px 32px 40px;max-width:1240px;width:100%}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px;position:relative}
+.av{width:40px;height:40px;border-radius:50%;border:1px solid var(--bd);background:var(--gs);color:var(--gd);font-weight:700;cursor:pointer}
+.bnav{display:none}
+.auth{min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+.hero{background:radial-gradient(120% 80% at 80% 90%,#2F9E74 0,transparent 55%),radial-gradient(90% 60% at 0 0,#8FA67A 0,transparent 45%),var(--dk);color:#fff;padding:48px;display:flex;flex-direction:column;justify-content:space-between}
+.hero h2{font-size:30px;line-height:1.15;letter-spacing:-.03em;max-width:380px;font-weight:600}.hero .brand{color:#fff}
+.form-w{display:flex;align-items:center;justify-content:center;padding:32px 20px}.form-w>div{width:100%;max-width:420px}
+.co{max-width:560px;margin:0 auto;padding:20px 16px 48px}.co .top{margin-bottom:16px}
+.qr{width:180px;height:180px;margin:12px auto;border:2px dashed var(--bd);border-radius:var(--rs);display:grid;place-items:center;text-align:center;padding:16px;color:var(--t2);font-size:12.5px;background:repeating-conic-gradient(#F2F5F2 0 25%,#fff 0 50%) 0 0/20px 20px}
+.code{word-break:break-all;background:var(--bg);border:1px solid var(--bd);border-radius:var(--rs);padding:10px 12px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+@media(max-width:900px){.auth{grid-template-columns:1fr}.hero{display:none}}
+@media(max-width:820px){
+.shell{display:block}.side:not(.adm){display:none}.main{padding:16px 16px 92px}
+.bnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--sf);border-top:1px solid var(--bd);z-index:40;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;font-weight:550;color:var(--t2);text-decoration:none;padding:6px 2px;min-height:48px}.bnav a.on{color:var(--gd)}
+.side.adm{position:static;height:auto;flex-direction:row;overflow-x:auto;padding:10px;gap:4px;align-items:center}.side.adm .brand,.side.adm .sp{display:none}.side.adm .nav{white-space:nowrap;padding:8px 12px}
+.dlg{align-self:flex-end;border-radius:16px 16px 0 0;max-width:none}.ov{padding:0}
+}
+@media(max-width:720px){
+table,thead,tbody,tr,td{display:block}thead{display:none}
+tr{border:1px solid var(--bd);border-radius:var(--rs);padding:6px 12px;margin-bottom:10px;background:var(--sf)}
+td{display:flex;justify-content:space-between;gap:12px;text-align:right;padding:8px 0;border-bottom:1px solid var(--bd)}td:last-child{border:0}
+td::before{content:attr(data-label);color:var(--t2);font-weight:550;text-align:left}
+.tb select{flex:1 1 100%}h1{font-size:20px}
+}
+/* ===== CAMADA PREMIUM 3D ===== */
+body{background:radial-gradient(900px 500px at 85% -10%,#E3F6E8,transparent 60%),var(--bg)}
+h1{font-size:26px;letter-spacing:-.035em}
+.card{border-radius:18px;box-shadow:inset 0 1px 0 #fff,0 1px 2px rgba(17,23,19,.05),0 18px 36px -20px rgba(17,23,19,.22)}
+.btn{border-radius:10px}.btn-p{background:linear-gradient(180deg,#3BDB7B,#1DB655);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 8px 16px -6px rgba(34,197,94,.6)}
+.btn-p:hover{background:linear-gradient(180deg,#46E285,#22C55E);transform:translateY(-1px)}.btn{transition:transform .15s,background .15s}
+.kpi .v{font-size:28px;letter-spacing:-.04em}
+.kpi.main{background:radial-gradient(120% 140% at 100% 0,#1F7A45,transparent 55%),linear-gradient(135deg,#0F3D24,#07160D);color:#fff;border-color:#14532D;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 28px 40px -22px rgba(7,22,13,.8);transition:transform .2s ease-out;transform-style:preserve-3d}
+.kpi.main .l,.kpi.main .h{color:#A7F3D0}
+.side:not(.adm){background:linear-gradient(180deg,#0E2417,#07140C);border-color:#07140C}
+.side:not(.adm) .brand{color:#fff}.side:not(.adm) .nav{color:#9DB8A6}.side:not(.adm) .nav:hover{background:#15301F;color:#fff}
+.side:not(.adm) .nav.on{background:linear-gradient(90deg,#1B4D30,#133624);color:#86EFAC;box-shadow:inset 2px 0 0 var(--g)}
+.side.adm{background:linear-gradient(180deg,#14161A,#0A0B0D);border-color:#0A0B0D}.side.adm .nav.on{background:#23272E;color:#fff;box-shadow:inset 2px 0 0 #A3E635}
+.mark{background:linear-gradient(145deg,#6EE7A0,#16A34A);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 6px 14px -4px rgba(34,197,94,.7)}
+.bars i{background:linear-gradient(180deg,#4ADE80,#15803D);box-shadow:0 8px 18px -8px rgba(34,197,94,.7)}
+.hero{position:relative;overflow:hidden;background:radial-gradient(70% 50% at 85% 85%,#2F9E74,transparent 60%),radial-gradient(60% 40% at 0 0,#9AAE7E,transparent 55%),#07140C}
+.scene{position:relative;height:330px;perspective:1100px}
+.c3{position:absolute;width:260px;padding:20px 22px;border-radius:20px;color:#fff;display:flex;flex-direction:column;gap:4px;background:linear-gradient(145deg,rgba(255,255,255,.2),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 40px 70px -20px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.35)}
+.c3 small{opacity:.7}.c3 b{font-size:28px;letter-spacing:-.03em}.c3 span{font-size:12.5px;color:#86EFAC}
+.c3a{left:4%;top:30px;transform:rotateY(-18deg) rotateX(8deg);animation:fl 7s ease-in-out infinite}
+.c3b{left:30%;top:160px;transform:rotateY(-18deg) rotateX(8deg) translateZ(60px);animation:fl 8s ease-in-out -3s infinite}
+.orb{position:absolute;right:2%;top:0;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#ECFCCB,#4ADE80 28%,#15803D 62%,#052E16);box-shadow:inset -18px -24px 40px rgba(0,0,0,.55),0 50px 60px -25px rgba(0,0,0,.7),0 0 90px rgba(34,197,94,.35);animation:fl 9s ease-in-out -1s infinite}
+@keyframes fl{50%{translate:0 -14px}}
+.hero h2{font-size:32px}.hero p{opacity:.78;max-width:400px;margin-top:10px}
+</style>
+</head>
+<body>
+<div id="app"></div><div id="toasts" aria-live="polite"></div>
+<script>
+/* ===== 4. DADOS FICTÍCIOS (centralizados) ===== */
+const KEY='vello_demo_v1',DAY=864e5;
+const now=()=>{const d=new Date();d.setHours(12,0,0,0);return d};
+const addDays=(d,n)=>new Date(+new Date(d)+n*DAY).toISOString();
+const BUY=[['Camila Duarte','52998224725','11987654321'],['Rafael Nogueira','11144477735','21976543210'],['Beatriz Lemos','39053344705','31965432109'],['Thiago Viana','86288366757','41954321098'],['Larissa Prado','71428793860','51943210987'],['Diego Albuquerque','24971563792','61932109876']];
+const split=(t,n)=>{const b=Math.floor(t/n);return Array.from({length:n},(_,i)=>i<n-1?b:t-b*(n-1))};
+function mk(id,owner,store,b,total,n,paid,ago,summary,status){
+ const c=addDays(now(),-ago),v=split(total,n);
+ return{id,owner,store,buyer:{name:BUY[b][0],cpf:BUY[b][1],phone:BUY[b][2]},total,n,created:c,summary,status:status||(paid>=n?'Quitada':paid>0?'Ativa':'Aguardando'),
+ inst:v.map((x,i)=>({n:i+1,value:x,due:addDays(c,i*30),paidAt:i<paid?addDays(c,i*30):null}))};
+}
+function seed(){
+ const names=[['Marina Teixeira','Casa Aurora Moda'],['Paulo Siqueira','Siqueira Eletro'],['Helena Costa','Atelier Helena'],['Bruno Matos','Matos Sneakers'],['Júlia Ramos','Ramos Cosméticos'],['Otávio Pires','Pires Games'],['Sara Nunes','Nunes Pet Shop'],['Caio Barros','Barros Bikes'],['Laura Fontes','Fontes Joias'],['Igor Melo','Melo Tech'],['Renata Dias','Dias Decor'],['Felipe Cruz','Cruz Fitness']];
+ const st=['Ativo','Ativo','Ativo','Pendente','Ativo','Suspenso'];
+ const users=names.map((n,i)=>({id:'u'+(i+1),name:n[0],store:n[1],email:n[1].toLowerCase().replace(/[^a-z]/g,'')+'@exemplo.demo',phone:'(11) 9'+String(8000+i*137).padStart(4,'0')+'-'+String(1200+i*311).slice(0,4),tiktok:'@'+n[1].toLowerCase().replace(/[^a-z]/g,''),reg:addDays(now(),-20-i*17),status:i?st[i%6]:'Ativo',bal:i?40000+i*9100:125000,rel:i?15000:38000}));
+ const me='u1',mn=names[0][1],o=(i)=>names[i][1];
+ const sales=[mk('VL-1001',me,mn,0,48000,4,4,130,'Vestido linho e bolsa'),mk('VL-1002',me,mn,1,129900,6,2,70,'Conjunto outono completo'),mk('VL-1003',me,mn,2,35000,2,1,45,'Blazer alfaiataria'),mk('VL-1004',me,mn,3,89990,5,2,60,'Kit três peças premium'),mk('VL-1005',me,mn,4,24500,1,1,20,'Camisa estampada'),mk('VL-1006',me,mn,5,76000,3,0,3,'Coleção primavera'),mk('VL-1007',me,mn,0,52000,4,1,35,'Sandália e acessórios'),mk('VL-1008',me,mn,1,18900,3,0,40,'Cinto de couro','Expirada'),
+ mk('VL-2001','u2',o(1),2,299000,10,3,95,'Smart TV 50 polegadas'),mk('VL-2002','u3',o(2),3,64000,4,2,55,'Joia sob encomenda'),mk('VL-2003','u4',o(3),4,98000,5,1,40,'Tênis edição limitada'),mk('VL-2004','u5',o(4),5,42000,2,2,30,'Kit skincare'),mk('VL-2005','u6',o(5),0,189900,6,0,6,'Console e jogos'),mk('VL-2006','u9',o(8),1,72000,3,1,38,'Colar e brincos')];
+ const wd=[{id:'SQ-301',owner:me,store:mn,name:users[0].name,amount:90000,keyType:'CPF',key:'52998224725',holder:users[0].name,date:addDays(now(),-25),status:'Concluído'},{id:'SQ-302',owner:me,store:mn,name:users[0].name,amount:25000,keyType:'E-mail',key:'contato@casaaurora.demo',holder:users[0].name,date:addDays(now(),-9),status:'Rejeitado'},
+ {id:'SQ-303','owner':'u2',store:o(1),name:names[1][0],amount:60000,keyType:'CNPJ',key:'11222333000181',holder:o(1)+' LTDA',date:addDays(now(),-2),status:'Aguardando aprovação'},{id:'SQ-304',owner:'u3',store:o(2),name:names[2][0],amount:30000,keyType:'Telefone',key:'11988887777',holder:names[2][0],date:addDays(now(),-1),status:'Aguardando aprovação'},{id:'SQ-305',owner:'u9',store:o(8),name:names[8][0],amount:42000,keyType:'Chave aleatória',key:'3f9c2a1e-77b4-4c1a-9d0e-5a8b1c2d3e4f',holder:names[8][0],date:addDays(now(),-1),status:'Aguardando aprovação'}];
+ return{users,sales,wd,maint:false,session:null};
+}
+let S=(()=>{try{return JSON.parse(localStorage.getItem(KEY))||seed()}catch(e){return seed()}})();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const me=()=>S.users[0],mine=()=>S.sales.filter(s=>s.owner==='u1');
+const fmt=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const fd=i=>new Date(i).toLocaleDateString('pt-BR');
+const dig=s=>String(s||'').replace(/\D/g,'');
+const ist=i=>i.paidAt?'Paga':new Date(i.due)<now()?'Vencida':'Pendente';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c]));
+const mCpf=c=>{const d=dig(c);return`***.${d.slice(3,6)}.${d.slice(6,9)}-**`};
+const mTel=t=>{const d=dig(t);return`(${d.slice(0,2)}) *****-${d.slice(-4)}`};
+const mKey=(t,k)=>t==='E-mail'?k[0]+'***'+k.slice(k.indexOf('@')):t==='Chave aleatória'?k.slice(0,4)+'…'+k.slice(-4):'***'+k.slice(-4);
+const maskCpf=v=>dig(v).slice(0,11).replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+const maskTel=v=>{const d=dig(v).slice(0,11);return d.length>6?`(${d.slice(0,2)}) ${d.slice(2,d.length>10?7:6)}-${d.slice(d.length>10?7:6)}`:d.length>2?`(${d.slice(0,2)}) ${d.slice(2)}`:d};
+const first=n=>n.split(' ')[0];
+/* ===== 5. SERVIÇOS SIMULADOS ===== */
+const has=(q,...f)=>!q||f.join(' ').toLowerCase().includes(q);
+const API={
+ dashboard(){const ins=mine().flatMap(s=>s.inst.map(i=>({...i,s})));const paid=ins.filter(i=>i.paidAt),open=ins.filter(i=>!i.paidAt);
+  const months=Array.from({length:6},(_,k)=>{const d=new Date(now());d.setMonth(d.getMonth()-5+k);return{l:d.toLocaleDateString('pt-BR',{month:'short'}).replace('.',''),m:d.getMonth(),y:d.getFullYear(),v:0}});
+  paid.forEach(i=>{const d=new Date(i.paidAt),b=months.find(x=>x.m===d.getMonth()&&x.y===d.getFullYear());if(b)b.v+=i.value});
+  return{avail:me().bal,rel:me().rel,proc:S.wd.filter(w=>w.owner==='u1'&&w.status==='Aguardando aprovação').reduce((a,w)=>a+w.amount,0),
+  received:paid.reduce((a,i)=>a+i.value,0),sales:mine().length,pend:open.length,future:open.reduce((a,i)=>a+i.value,0),months,
+  recent:paid.sort((a,b)=>b.paidAt.localeCompare(a.paidAt)).slice(0,5),next:open.sort((a,b)=>a.due.localeCompare(b.due)).slice(0,5)}},
+ links:(q,st)=>mine().filter(s=>(!st||s.status===st)&&has(q,s.id,s.buyer.name,s.summary)).sort((a,b)=>b.created.localeCompare(a.created)),
+ payments:(q,st)=>mine().flatMap(s=>s.inst.map(i=>({s,i,st:ist(i)}))).filter(r=>(!st||r.st===st)&&has(q,r.s.id,r.s.buyer.name)).sort((a,b)=>b.i.due.localeCompare(a.i.due)),
+ createSale(d){const id='VL-'+(1000+S.sales.length+1+(S.sales.length>20?100:0));const t=d.total,v=split(t,d.n),c=now().toISOString();
+  const s={id,owner:'u1',store:me().store,buyer:d.buyer,total:t,n:d.n,created:c,summary:d.summary,status:'Aguardando',inst:v.map((x,i)=>({n:i+1,value:x,due:addDays(c,i*30),paidAt:null}))};S.sales.push(s);save();return s},
+ pay(id){const s=S.sales.find(x=>x.id===id),i=s.inst.find(x=>!x.paidAt);if(!i)return null;i.paidAt=new Date().toISOString();
+  const u=S.users.find(x=>x.id===s.owner);u.rel+=i.value;s.status=s.inst.every(x=>x.paidAt)?'Quitada':'Ativa';save();return i},
+ withdraw(d){const w={id:'SQ-'+(300+S.wd.length+1),owner:'u1',store:me().store,name:me().name,amount:d.amount,keyType:d.keyType,key:d.key,holder:d.holder,date:new Date().toISOString(),status:'Aguardando aprovação'};
+  me().bal-=d.amount;S.wd.push(w);save();return w},
+ adminWd(id,ok){const w=S.wd.find(x=>x.id===id);w.status=ok?'Concluído':'Rejeitado';if(!ok)S.users.find(u=>u.id===w.owner).bal+=w.amount;save()},
+ admin(){const all=S.sales.flatMap(s=>s.inst.map(i=>({s,i})));const aw=S.wd.filter(w=>w.status==='Aguardando aprovação');
+  return{users:S.users.length,pend:all.filter(x=>!x.i.paidAt).length,conf:all.filter(x=>x.i.paidAt).length,vol:S.sales.reduce((a,s)=>a+s.total,0),awN:aw.length,awV:aw.reduce((a,w)=>a+w.amount,0),aw,
+  last:[...S.sales].sort((a,b)=>b.created.localeCompare(a.created)).slice(0,5),
+  act:[...all.filter(x=>x.i.paidAt).map(x=>({d:x.i.paidAt,t:`${x.s.store}: parcela ${x.i.n}/${x.s.n} de ${x.s.buyer.name} paga (${fmt(x.i.value)})`})),...S.wd.map(w=>({d:w.date,t:`${w.store}: saque de ${fmt(w.amount)} — ${w.status}`}))].sort((a,b)=>b.d.localeCompare(a.d)).slice(0,6)}}
+};
+/* ===== COMPONENTES (funções reutilizáveis) ===== */
+const I={home:'<path d="M3 11l9-8 9 8M5 10v10h14V10"/>',link:'<path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/>',plus:'<path d="M12 5v14M5 12h14"/>',wallet:'<path d="M3 7h16a2 2 0 012 2v10H5a2 2 0 01-2-2zM3 7l12-3v3M16 14h2"/>',help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 114 2c-1 .7-1.500 1-1.500 2M12 17h.01"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',card:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>',users:'<circle cx="9" cy="8" r="3.500"/><path d="M2 20c0-3.500 3-5 7-5s7 1.500 7 5M17 4.500a3.500 3.500 0 010 7M22 20c0-3-2-4.500-4-5"/>',tool:'<path d="M14 6a4 4 0 005 5l-9 9a2 2 0 01-3-3z"/>',out:'<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/>',check:'<path d="M5 12l5 5 9-10"/>',eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'};
+const ic=n=>`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]||''}</svg>`;
+const $=s=>document.querySelector(s);
+const brand=()=>`<span class="brand"><span class="mark">V</span>Vello</span>`;
+const BD={'Paga':'ok','Quitada':'ok','Ativo':'ok','Concluído':'ok','Aprovado':'ok','Pendente':'w','Aguardando':'w','Aguardando aprovação':'w','Vencida':'bad','Expirada':'bad','Rejeitado':'bad','Suspenso':'bad','Ativa':'i'};
+const badge=s=>`<span class="badge b-${BD[s]||'m'}">${esc(s)}</span>`;
+const kpi=(l,v,h,c)=>`<div class="card kpi ${c||''}"><div class="l">${l}</div><div class="v num">${v}</div>${h?`<div class="h">${h}</div>`:''}</div>`;
+const empty=(t,d)=>`<div class="empty"><b>${t}</b>${d||''}</div>`;
+const skel=n=>Array.from({length:n||4},()=>'<div class="sk"></div>').join('');
+const tbl=(h,rows,e)=>!rows.length?empty(e||'Nenhum registro','Nenhum item corresponde à busca. Limpe os filtros para ver todos os registros.'):`<div class="tw"><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td data-label="${h[i]}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+const fld=(id,l,a,x)=>`<div class="f" id="f-${id}"><label for="${id}">${l}</label><input id="${id}" ${a||''}>${x||''}<div class="er" id="e-${id}" role="alert"></div></div>`;
+const sel=(id,l,opts,sel2)=>`<div class="f" id="f-${id}"><label for="${id}">${l}</label><select id="${id}">${opts.map(o=>`<option ${o===sel2?'selected':''}>${o}</option>`).join('')}</select><div class="er" id="e-${id}"></div></div>`;
+function toast(m,e){const t=document.createElement('div');t.className='toast'+(e?' e':'');t.textContent=m;$('#toasts').append(t);setTimeout(()=>t.remove(),3200)}
+function modal(o){const ov=document.createElement('div');ov.className='ov';
+ ov.innerHTML=`<div class="dlg" role="dialog" aria-modal="true" aria-label="${esc(o.title)}"><h2>${esc(o.title)}</h2><div>${o.body||''}</div><div class="act">${o.ok===null?'':'<button class="btn btn-s" data-x>Cancelar</button>'}<button class="btn ${o.cls||'btn-p'}" data-ok>${o.ok||'Fechar'}</button></div></div>`;
+ const close=()=>{ov.remove();document.removeEventListener('keydown',k)},k=e=>{if(e.key==='Escape')close()};
+ ov.addEventListener('click',e=>{if(e.target===ov||e.target.hasAttribute('data-x'))close();if(e.target.hasAttribute('data-ok')){close();o.fn&&o.fn()}});
+ document.addEventListener('keydown',k);document.body.append(ov);ov.querySelector('[data-ok]').focus()}
+const confirmD=(t,b,ok,fn,cls)=>modal({title:t,body:`<p class="mut">${b}</p>`,ok,fn,cls});
+function copy(t){const done=()=>toast('Copiado');
+ if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(t).then(done,()=>fb());else fb();
+ function fb(){const a=document.createElement('textarea');a.value=t;document.body.append(a);a.select();try{document.execCommand('copy');done()}catch(e){toast('Não foi possível copiar. Selecione e copie manualmente.',1)}a.remove()}}
+function setErr(id,m){const f=$('#f-'+id);if(!f)return;f.classList.toggle('bad',!!m);$('#e-'+id).textContent=m||''}
+function check(rules){let ok=true,fo=null;rules.forEach(([id,t,m])=>{const bad=!t($('#'+id).value);setErr(id,bad?m:'');if(bad){ok=false;fo=fo||id}});if(fo)$('#'+fo).focus();return ok}
+const okEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim());
+const okCpf=v=>{const d=dig(v);return d.length===11&&!/^(\d)\1+$/.test(d)};
+const okTel=v=>[10,11].includes(dig(v).length);
+function money(el,onc){el.addEventListener('input',()=>{const c=+dig(el.value).slice(0,10)||0;el.dataset.c=c;el.value=c?fmt(c):'';onc&&onc(c)})}
+const cents=el=>+el.dataset.c||0;
+function list(o){let pg=1;const per=o.per||8;
+ const html=`<div class="card"><div class="tb"><input id="q" type="search" placeholder="${o.ph||'Pesquisar'}" aria-label="Pesquisar">${o.opts?`<select id="st" aria-label="Filtrar por status"><option value="">Todos os status</option>${o.opts.map(x=>`<option>${x}</option>`).join('')}</select>`:''}</div><div id="lv">${skel(5)}</div></div>`;
+ const draw=()=>{const all=o.get($('#q').value.trim().toLowerCase(),$('#st')?$('#st').value:''),pages=Math.max(1,Math.ceil(all.length/per));pg=Math.min(pg,pages);
+  $('#lv').innerHTML=tbl(o.heads,all.slice((pg-1)*per,pg*per).map(o.row),o.empty)+(all.length>per?`<div class="pager"><button class="btn btn-s btn-sm" data-pg="-1" ${pg<2?'disabled':''}>Anterior</button><span class="mut sm">Página ${pg} de ${pages} · ${all.length} registros</span><button class="btn btn-s btn-sm" data-pg="1" ${pg>=pages?'disabled':''}>Próxima</button></div>`:'')};
+ const mount=()=>{setTimeout(draw,350);$('#q').oninput=()=>{pg=1;draw()};if($('#st'))$('#st').onchange=()=>{pg=1;draw()};
+  $('#lv').onclick=e=>{const b=e.target.closest('[data-pg]');if(b){pg+=+b.dataset.pg;draw()}};o.after&&($('#lv').addEventListener('click',o.after))};
+ return{html,mount,redraw:draw}}
+/* ===== 6. LAYOUTS ===== */
+const MN=[['dashboard','Início','home'],['criar','Criar link','plus'],['links','Links','link'],['pagamentos','Pagamentos','card'],['saques','Saques','wallet'],['suporte','Suporte','help'],['perfil','Perfil','user']];
+const AN=[['dashboard','Painel','home'],['usuarios','Usuários','users'],['pagamentos','Pagamentos','card'],['saques','Saques','wallet'],['manutencao','Manutenção','tool']];
+function shellMerchant(page,title,body){
+ const nav=(a)=>`<a class="nav ${a[0]===page?'on':''}" href="#/app/${a[0]}" ${a[0]===page?'aria-current="page"':''}>${ic(a[2])}${a[1]}</a>`;
+ return`<div class="shell"><aside class="side">${brand()}${MN.map(nav).join('')}<div class="sp"></div><button class="nav" data-act="logout" style="border:0;background:none;font:inherit;cursor:pointer;text-align:left">${ic('out')}Sair</button></aside>
+ <main class="main"><div class="top"><div><h1>${title}</h1></div><div style="position:relative"><button class="av" data-act="menu" aria-label="Menu da conta" aria-haspopup="true">${me().name[0]}</button><div class="menu" id="menu" hidden><a href="#/app/perfil">Perfil e configurações</a><button data-act="reset">Restaurar dados de demonstração</button><button data-act="logout">Sair da sessão</button></div></div></div>${body}</main>
+ <nav class="bnav" aria-label="Navegação principal">${[['dashboard','Início','home'],['links','Links','link'],['saques','Saques','wallet'],['suporte','Suporte','help']].map(a=>`<a href="#/app/${a[0]}" class="${a[0]===page?'on':''}">${ic(a[2])}${a[1]}</a>`).join('')}</nav></div>`}
+function shellAdmin(page,title,body){
+ return`<div class="shell"><aside class="side adm">${brand()}${AN.map(a=>`<a class="nav ${a[0]===page?'on':''}" href="#/admin/${a[0]}">${ic(a[2])}${a[1]}</a>`).join('')}<div class="sp"></div><a class="nav" href="#/app/dashboard">${ic('eye')}Área do lojista</a><a class="nav" href="#/admin/login" data-act="logout">${ic('out')}Sair</a></aside>
+ <main class="main"><div class="top"><h1>${title}</h1><span class="badge b-w">Demonstração · dados fictícios</span></div>${body}</main></div>`}
+/* ===== 7. PÁGINAS DO LOJISTA ===== */
+const pwField=(id,l)=>`<div class="f" id="f-${id}"><label for="${id}">${l}</label><div class="pw"><input id="${id}" type="password" autocomplete="off"><button type="button" data-act="pw" data-t="${id}" aria-label="Mostrar ou ocultar senha">${ic('eye')}</button></div><div class="er" id="e-${id}" role="alert"></div></div>`;
+const authWrap=(inner)=>`<div class="auth"><section class="hero">${brand()}<div class="scene" aria-hidden="true"><div class="orb"></div><div class="c3 c3a"><small>Parcela 1 de 6</small><b>R$ 216,50</b><span>Pix · vence em 30 dias</span></div><div class="c3 c3b"><small>Saldo disponível</small><b>R$ 1.250,00</b><span>Liberado para saque</span></div></div><div><h2>Parcelamento no Pix, com cada parcela sob controle.</h2><p>Crie o link, o cliente confirma e você acompanha vencimentos, repasses e saques em um só painel.</p><p class="sm" style="opacity:.55">Ambiente de demonstração · dados simulados</p></div></section><section class="form-w"><div class="stack">${inner}</div></section></div>`;
+const P={};
+P.login=()=>({html:authWrap(`<div class="brand" style="display:none"></div><div><h1>Acesse sua conta</h1><p class="mut">Gerencie vendas parceladas, recebimentos e saques da sua loja.</p></div><form id="lf" novalidate class="stack">${fld('em','E-mail','type="email" autocomplete="username" placeholder="voce@loja.com"')}${pwField('pw','Senha')}<div id="lerr" class="er"></div><button class="btn btn-p btn-w" id="lb">Entrar</button><button type="button" class="btn btn-s btn-w" data-act="demo">Acessar demonstração</button></form><div class="row sb sm"><a href="#" data-act="forgot">Esqueci minha senha</a><a href="#/cadastro">Criar conta</a></div><a class="sm" href="#/admin/login">Acesso administrativo (demonstração)</a>`),
+ mount(){$('#lf').onsubmit=e=>{e.preventDefault();if(!check([['em',okEmail,'Informe um e-mail válido.'],['pw',v=>v.length>=6,'A senha deve ter ao menos 6 caracteres.']]))return;
+  const b=$('#lb');b.disabled=true;b.textContent='Entrando…';setTimeout(()=>{if($('#pw').value==='erro123'){b.disabled=false;b.textContent='Entrar';$('#lerr').textContent='E-mail ou senha incorretos.';return}S.session='merchant';save();location.hash='#/app/dashboard'},700)}}});
+P.cadastro=()=>({html:authWrap(`<div><h1>Criar conta</h1><p class="mut">Crie sua conta e emita o primeiro link de parcelamento em minutos.</p></div><form id="rf" novalidate class="stack"><div class="fg">${fld('nm','Nome completo','autocomplete="name"')}${fld('em','E-mail','type="email"')}${fld('tl','Telefone','inputmode="tel" placeholder="(11) 90000-0000"')}${fld('lj','Nome da loja')}</div>${fld('tk','Perfil do TikTok (opcional)','placeholder="@sualoja"')}<div class="fg">${pwField('pw','Senha')}${pwField('pw2','Confirmar senha')}</div><button class="btn btn-p btn-w">Criar conta e entrar</button></form><p class="sm">Já tem conta? <a href="#/login">Entrar</a></p>`),
+ mount(){$('#tl').oninput=e=>e.target.value=maskTel(e.target.value);$('#rf').onsubmit=e=>{e.preventDefault();
+  if(!check([['nm',v=>v.trim().split(/\s+/).length>=2,'Informe nome e sobrenome.'],['em',okEmail,'Informe um e-mail válido.'],['tl',okTel,'Informe DDD e número.'],['lj',v=>v.trim().length>=2,'Informe o nome da loja.'],['tk',v=>!v||/^@?[\w.]{2,24}$/.test(v.trim()),'Use o formato @usuario.'],['pw',v=>v.length>=8,'Use ao menos 8 caracteres.'],['pw2',v=>v===$('#pw').value&&v,'As senhas não coincidem.']]))return;
+  Object.assign(me(),{name:$('#nm').value.trim(),email:$('#em').value.trim(),phone:$('#tl').value,store:$('#lj').value.trim(),tiktok:$('#tk').value.trim()});S.session='merchant';save();toast('Conta criada (demonstração)');location.hash='#/app/dashboard'}}});
+P.dashboard=()=>{const d=API.dashboard(),mx=Math.max(...d.months.map(m=>m.v),1);
+ return{title:`Visão geral`,html:`<div class="note" style="margin-bottom:16px">Ambiente de demonstração · valores simulados. Saldo disponível, a liberar e parcelas futuras são contabilizados separadamente.</div>
+ <div class="grid g4">${kpi('Saldo disponível',fmt(d.avail),'Pronto para saque','main')}${kpi('Em processamento',fmt(d.proc),'Saques aguardando aprovação')}${kpi('A liberar',fmt(d.rel),'Parcelas pagas em liberação')}${kpi('Total recebido',fmt(d.received),'Soma das parcelas pagas')}${kpi('Vendas realizadas',d.sales,'Links criados')}${kpi('Parcelas pendentes',d.pend,fmt(d.future)+' a receber no futuro')}</div>
+ <div class="row" style="margin:16px 0"><a class="btn btn-p" href="#/app/criar">${ic('plus')}Criar link</a><a class="btn btn-s" href="#/app/pagamentos">${ic('card')}Consultar pagamentos</a><a class="btn btn-s" href="#/app/saques">${ic('wallet')}Solicitar saque</a></div>
+ <div class="grid g2"><div class="card"><h2 style="margin-bottom:12px">Recebido nos últimos 6 meses</h2><div class="bars">${d.months.map(m=>`<div><span class="num">${m.v?Math.round(m.v/100/100)/10+'k':'0'}</span><i style="height:${m.v/mx*100}%"></i>${m.l}</div>`).join('')}</div></div>
+ <div class="card"><h2 style="margin-bottom:8px">Próximos vencimentos</h2>${d.next.length?d.next.map(i=>`<div class="li"><div><b>${esc(i.s.buyer.name)}</b><div class="mut sm">${i.s.id} · parcela ${i.n}/${i.s.n} · ${fd(i.due)}</div></div><div class="num"><b>${fmt(i.value)}</b><div>${badge(ist(i))}</div></div></div>`).join(''):empty('Nenhum vencimento em aberto')}</div></div>
+ <div class="card" style="margin-top:16px"><h2 style="margin-bottom:8px">Últimas transações</h2>${tbl(['Comprador','Venda','Parcela','Valor','Data'],d.recent.map(i=>[esc(i.s.buyer.name),`<a href="#/app/venda/${i.s.id}">${i.s.id}</a>`,`${i.n}/${i.s.n}`,`<b class="num">${fmt(i.value)}</b>`,fd(i.paidAt)]),'Sem transações')}</div>`}};
+P.criar=()=>({title:'Criar link de parcelamento',html:`<div class="grid g2" style="align-items:start"><form class="card stack" id="cf" novalidate><div class="fg">${fld('vt','Valor total','inputmode="numeric" placeholder="R$ 0,00"')}${sel('np','Parcelas',Array.from({length:10},(_,i)=>i+1+'x'),'1x')}</div>${fld('bn','Nome completo do comprador','autocomplete="off"')}<div class="fg">${fld('bc','CPF','inputmode="numeric" placeholder="000.000.000-00"')}${fld('bt','Telefone','inputmode="tel" placeholder="(11) 90000-0000"')}</div><div class="f" id="f-rs"><label for="rs">Resumo da venda</label><textarea id="rs" maxlength="140" placeholder="Ex.: Vestido linho e bolsa"></textarea><div class="er" id="e-rs"></div></div><button class="btn btn-p">Gerar link</button></form>
+ <div class="stack"><div class="card"><h2>Resumo do parcelamento</h2><div id="calc" class="mut" style="margin-top:8px">Informe o valor total.</div><p class="mut sm" style="margin-top:12px">Sem taxas ou juros: o total é dividido em parcelas iguais e a última recebe o ajuste de centavos.</p></div><div id="res"></div></div></div>`,
+ mount(){const calc=()=>{const t=cents($('#vt')),n=parseInt($('#np').value);if(!t){$('#calc').textContent='Informe o valor total.';return}const v=split(t,n);
+  $('#calc').innerHTML=`<div class="kpi"><div class="v num">${n}x de ${fmt(v[0])}</div></div>${v[n-1]!==v[0]?`<div class="li"><span>Última parcela (ajuste)</span><b class="num">${fmt(v[n-1])}</b></div>`:''}<div class="li"><span>Total</span><b class="num">${fmt(t)}</b></div>`};
+  money($('#vt'),calc);$('#np').onchange=calc;$('#bc').oninput=e=>e.target.value=maskCpf(e.target.value);$('#bt').oninput=e=>e.target.value=maskTel(e.target.value);
+  $('#cf').onsubmit=e=>{e.preventDefault();if(!check([['vt',()=>cents($('#vt'))>=100,'Informe um valor de pelo menos R$ 1,00.'],['bn',v=>v.trim().split(/\s+/).length>=2,'Informe nome e sobrenome.'],['bc',okCpf,'CPF inválido.'],['bt',okTel,'Informe DDD e número.'],['rs',v=>v.trim().length>=3,'Descreva a venda.']]))return;
+  const s=API.createSale({total:cents($('#vt')),n:parseInt($('#np').value),buyer:{name:$('#bn').value.trim(),cpf:dig($('#bc').value),phone:dig($('#bt').value)},summary:$('#rs').value.trim()});
+  const url=location.href.split('#')[0]+'#/checkout/'+s.id;toast('Link de parcelamento criado');
+  $('#res').innerHTML=`<div class="card ok-box stack"><b>Link ${s.id} criado (simulado)</b><div class="code" style="background:#fff">${esc(url)}</div><div class="row"><button class="btn btn-p btn-sm" data-act="copy" data-t="${esc(url)}">Copiar link</button><a class="btn btn-s btn-sm" href="#/checkout/${s.id}">Abrir checkout</a><a class="btn btn-s btn-sm" href="#/app/venda/${s.id}">Ver detalhes</a></div></div>`;$('#cf').reset();$('#vt').dataset.c=0;calc()}}});
+P.links=()=>{const L=list({ph:'Buscar por código, comprador ou resumo',opts:['Aguardando','Ativa','Quitada','Expirada'],get:API.links,heads:['Código','Comprador','Valor','Parcelas','Data','Status','Ações'],empty:'Nenhum link encontrado',
+ row:s=>[`<b>${s.id}</b>`,esc(s.buyer.name),`<span class="num">${fmt(s.total)}</span>`,`${s.inst.filter(i=>i.paidAt).length}/${s.n}`,fd(s.created),badge(s.status),`<div class="row"><a class="btn btn-s btn-sm" href="#/app/venda/${s.id}">Detalhes</a><button class="btn btn-s btn-sm" data-act="copy" data-t="${location.href.split('#')[0]}#/checkout/${s.id}">Copiar</button></div>`]});
+ return{title:'Links de parcelamento',html:`<div class="row" style="margin-bottom:12px"><a class="btn btn-p" href="#/app/criar">${ic('plus')}Novo link</a></div>`+L.html,mount:L.mount}};
+P.venda=id=>{const s=S.sales.find(x=>x.id===id&&x.owner==='u1');if(!s)return{title:'Venda não encontrada',html:`<div class="card">${empty('Venda não encontrada','<a href="#/app/links">Voltar aos links</a>')}</div>`};
+ const paid=s.inst.filter(i=>i.paidAt);return{title:`Venda ${s.id}`,html:`<div class="grid g4">${kpi('Valor total',fmt(s.total),s.n+'x sem juros')}${kpi('Parcelas pagas',paid.length+' de '+s.n,fmt(paid.reduce((a,i)=>a+i.value,0)))}${kpi('Parcelas restantes',s.n-paid.length)}${kpi('Valor pendente',fmt(s.inst.filter(i=>!i.paidAt).reduce((a,i)=>a+i.value,0)),'Status: '+s.status)}</div>
+ <div class="grid g2" style="margin-top:16px"><div class="card"><h2>Comprador</h2><div class="li"><span class="mut">Nome</span><b>${esc(s.buyer.name)}</b></div><div class="li"><span class="mut">CPF</span><span>${mCpf(s.buyer.cpf)}</span></div><div class="li"><span class="mut">Telefone</span><span>${mTel(s.buyer.phone)}</span></div><div class="li"><span class="mut">Resumo</span><span>${esc(s.summary)}</span></div></div>
+ <div class="card"><h2>Histórico de pagamentos</h2>${paid.length?paid.map(i=>`<div class="li"><span>Parcela ${i.n}/${s.n} paga em ${fd(i.paidAt)}</span><b class="num">${fmt(i.value)}</b></div>`).join(''):empty('Nenhum pagamento ainda')}</div></div>
+ <div class="card" style="margin-top:16px"><div class="row sb"><h2>Parcelas</h2><div class="row"><a class="btn btn-s btn-sm" href="#/checkout/${s.id}">Abrir checkout</a><a class="btn btn-s btn-sm" href="#/app/links">Voltar</a></div></div>${tbl(['Parcela','Vencimento','Valor','Status'],s.inst.map(i=>[`${i.n}/${s.n}`,fd(i.due),`<span class="num">${fmt(i.value)}</span>`,badge(ist(i))]))}</div>`}};
+P.pagamentos=()=>{const L=list({ph:'Buscar por comprador ou venda',opts:['Paga','Pendente','Vencida'],get:API.payments,heads:['Comprador','Venda','Parcela','Valor','Data','Status'],empty:'Nenhum pagamento encontrado',
+ row:r=>[esc(r.s.buyer.name),`<a href="#/app/venda/${r.s.id}">${r.s.id}</a>`,`${r.i.n}/${r.s.n}`,`<b class="num">${fmt(r.i.value)}</b>`,fd(r.i.paidAt||r.i.due),badge(r.st)]});return{title:'Pagamentos',html:L.html,mount:L.mount}};
+const KT=['CPF','CNPJ','E-mail','Telefone','Chave aleatória'];
+const keyOk={CPF:v=>okCpf(v),CNPJ:v=>dig(v).length===14,'E-mail':okEmail,Telefone:okTel,'Chave aleatória':v=>/^[0-9a-f-]{32,36}$/i.test(v.trim())};
+P.saques=()=>{const d=API.dashboard();const L=list({ph:'Buscar solicitação',per:5,get:q=>S.wd.filter(w=>w.owner==='u1'&&has(q,w.id,w.status)).sort((a,b)=>b.date.localeCompare(a.date)),heads:['Código','Valor','Chave Pix','Data','Status'],empty:'Nenhuma solicitação ainda',row:w=>[w.id,`<b class="num">${fmt(w.amount)}</b>`,`${w.keyType}: ${esc(mKey(w.keyType,w.key))}`,fd(w.date),badge(w.status)]});
+ return{title:'Saques',html:`<div class="grid g4" id="wk">${kpi('Saldo disponível',fmt(d.avail),'Disponível para saque','main')}${kpi('Em processamento',fmt(d.proc),'Aguardando aprovação')}</div><div class="grid g2" style="margin:16px 0;align-items:start"><form class="card stack" id="wf" novalidate><h2>Solicitar saque</h2><div class="f" id="f-wv"><label for="wv">Valor</label><div class="row" style="flex-wrap:nowrap"><input id="wv" inputmode="numeric" placeholder="R$ 0,00"><button type="button" class="btn btn-s" data-act="max">MAX</button></div><div class="er" id="e-wv"></div></div>${sel('wt','Tipo de chave Pix',KT,'CPF')}${fld('wk2','Chave Pix')}${fld('wh','Titular da conta','value="'+esc(me().name)+'"')}<button class="btn btn-p">Solicitar saque</button><p class="mut sm">Demonstração: nenhuma transferência real é feita.</p></form><div class="card"><h2 style="margin-bottom:8px">Como funciona</h2><p class="mut">Ao solicitar, o valor sai do saldo disponível e passa a “em processamento” até a aprovação do administrador (demonstrativo). Valores a liberar e parcelas futuras não entram no saldo.</p></div></div><h2 style="margin-bottom:8px">Histórico de solicitações</h2>`+L.html,
+ mount(){L.mount();money($('#wv'));$('#wf').onsubmit=e=>{e.preventDefault();const t=$('#wt').value;
+  if(!check([['wv',()=>cents($('#wv'))>=100&&cents($('#wv'))<=me().bal,cents($('#wv'))>me().bal?'Valor maior que o saldo disponível.':'Informe um valor de pelo menos R$ 1,00.'],['wk2',keyOk[t],'Chave inválida para o tipo '+t+'.'],['wh',v=>v.trim().length>=3,'Informe o titular.']]))return;
+  const a=cents($('#wv')),k=$('#wk2').value.trim();confirmD('Confirmar saque',`Solicitar ${fmt(a)} para a chave ${t}: ${esc(mKey(t,k))}?`,'Confirmar saque',()=>{API.withdraw({amount:a,keyType:t,key:dig(k)&&t!=='E-mail'&&t!=='Chave aleatória'?dig(k):k,holder:$('#wh').value.trim()});toast('Saque solicitado: aguardando aprovação');route()})}}}};
+P.suporte=()=>({title:'Suporte',html:`<div class="grid g2"><div class="card"><h2>Central de ajuda</h2>${[['Como funciona o parcelamento?','Você cria um link, o comprador confirma e paga a primeira parcela via Pix. As demais parcelas seguem os vencimentos mostrados no detalhe da venda.'],['Quando o saldo fica disponível?','Parcelas pagas entram em “a liberar” e passam ao saldo conforme as regras da plataforma. Nesta demonstração, os valores são fictícios.'],['Como solicito um saque?','Em Saques, informe valor e chave Pix. A solicitação fica aguardando aprovação.']].map(f=>`<details><summary>${f[0]}</summary><p>${f[1]}</p></details>`).join('')}</div>
+ <form class="card stack" id="sf" novalidate><h2>Abrir chamado (demonstração)</h2>${fld('sa','Assunto')}<div class="f" id="f-sm"><label for="sm">Mensagem</label><textarea id="sm"></textarea><div class="er" id="e-sm"></div></div><button class="btn btn-p">Enviar chamado</button><p class="mut sm">Canais de atendimento oficiais serão definidos na versão final.</p></form></div>`,
+ mount(){$('#sf').onsubmit=e=>{e.preventDefault();if(!check([['sa',v=>v.trim().length>=3,'Informe o assunto.'],['sm',v=>v.trim().length>=10,'Descreva o problema com ao menos 10 caracteres.']]))return;toast('Chamado registrado (simulado)');$('#sf').reset()}}});
+P.perfil=()=>({title:'Perfil e configurações',html:`<form class="card stack" id="pf" novalidate style="max-width:640px"><div class="fg">${fld('nm','Nome','value="'+esc(me().name)+'"')}${fld('lj','Loja','value="'+esc(me().store)+'"')}${fld('em','E-mail','type="email" value="'+esc(me().email)+'"')}${fld('tl','Telefone','value="'+esc(me().phone)+'"')}${fld('tk','TikTok','value="'+esc(me().tiktok)+'"')}</div><div class="row"><button class="btn btn-p">Salvar alterações</button><button type="button" class="btn btn-s" data-act="logout">Sair da sessão</button><button type="button" class="btn btn-d" data-act="reset">Restaurar dados de demonstração</button></div></form>`,
+ mount(){$('#tl').oninput=e=>e.target.value=maskTel(e.target.value);$('#pf').onsubmit=e=>{e.preventDefault();if(!check([['nm',v=>v.trim().length>=3,'Informe o nome.'],['lj',v=>v.trim().length>=2,'Informe a loja.'],['em',okEmail,'E-mail inválido.'],['tl',okTel,'Telefone inválido.'],['tk',v=>!v||/^@?[\w.]{2,24}$/.test(v.trim()),'Use o formato @usuario.']]))return;
+  Object.assign(me(),{name:$('#nm').value.trim(),store:$('#lj').value.trim(),email:$('#em').value.trim(),phone:$('#tl').value,tiktok:$('#tk').value.trim()});save();toast('Perfil atualizado');route()}}});
+/* ===== 8. CHECKOUT PÚBLICO ===== */
+let CK={id:null,stage:'resumo'};
+function checkout(id){
+ if(CK.id!==id)CK={id,stage:'resumo'};
+ let s=S.sales.find(x=>x.id===id);if(id==='expirado')s=S.sales.find(x=>x.status==='Expirada');
+ const wrap=b=>`<div class="co"><div class="top">${brand()}<span class="badge b-w">Ambiente de demonstração</span></div>${b}<p class="mut sm" style="text-align:center;margin-top:16px">Ver estados: <a href="#/checkout/invalido">link inválido</a> · <a href="#/checkout/expirado">link expirado</a></p></div>`;
+ const msg=(t,d)=>wrap(`<div class="card">${empty(t,d)}<div style="text-align:center"><a class="btn btn-s" href="#/login">Ir para a Vello</a></div></div>`);
+ if(!s)return{html:msg('Link inválido','Este link não existe. Confira o endereço com o lojista.')};
+ if(s.status==='Expirada')return{html:msg('Link expirado','O prazo desta compra terminou. Peça um novo link ao lojista.')};
+ const nx=s.inst.find(i=>!i.paidAt),b=s.buyer;
+ const head=`<div class="card stack"><p class="mut sm">Compra processada por: <b style="color:var(--tx)">Vello Parcelamentos</b></p><div class="row sb"><div><b>${esc(s.store)}</b><div class="mut sm">${esc((S.users.find(u=>u.id===s.owner)||{}).email||'')}</div></div>${badge(s.status)}</div>`;
+ if(!nx&&CK.stage!=='ok')return{html:wrap(head+`<div class="ok-box">Todas as parcelas desta compra foram pagas.</div></div>`)};
+ if(CK.stage==='pix'){const code=`DEMO-VELLO-${s.id}-P${nx.n}-NAO-UTILIZAVEL`;return{html:wrap(head+`<div class="note">Dados simulados: este código não gera cobrança real.</div><div style="text-align:center"><div class="mut">Parcela ${nx.n} de ${s.n}</div><div style="font-size:28px;font-weight:700" class="num">${fmt(nx.value)}</div><div>${badge('Aguardando')} <span class="mut sm">Aguardando pagamento</span></div></div><div class="qr">Espaço reservado para QR Code (demonstrativo)</div><div class="code">${code}</div><button class="btn btn-s btn-w" data-act="copy" data-t="${code}">Copiar código Pix</button><div class="mut sm"><b>Como pagar:</b> abra o app do seu banco, escolha Pix, cole o código e confirme. Depois de pagar, o status muda para confirmado.</div><button class="btn btn-p btn-w" data-act="paydemo" data-id="${s.id}">Simular pagamento confirmado</button></div>`)}}
+ if(CK.stage==='ok'){const rest=s.inst.filter(i=>!i.paidAt);return{html:wrap(head+`<div class="ok-box"><b>Pagamento confirmado</b><div class="sm">Parcela paga na demonstração. A confirmação já está disponível para o lojista.</div></div><h2>Próximas parcelas</h2>${rest.length?rest.map(i=>`<div class="li"><span>Parcela ${i.n}/${s.n} · vence em ${fd(i.due)}</span><b class="num">${fmt(i.value)}</b></div>`).join(''):'<p class="mut">Compra quitada.</p>'}${rest.length?`<button class="btn btn-s btn-w" data-act="again">Gerar Pix da próxima parcela</button>`:''}</div>`)}}
+ return{html:wrap(head+`<div class="li"><span class="mut">Valor total</span><b class="num">${fmt(s.total)}</b></div><div class="li"><span class="mut">Parcelamento</span><b>${s.n}x sem juros</b></div><div class="li"><span class="mut">${nx.n===1?'Primeira parcela':'Próxima parcela (' +nx.n+'/'+s.n+')'}</span><b class="num">${fmt(nx.value)}</b></div><h2>Dados do comprador</h2><div class="li"><span class="mut">Nome</span><span>${esc(b.name)}</span></div><div class="li"><span class="mut">CPF</span><span>${mCpf(b.cpf)}</span></div><div class="li"><span class="mut">Telefone</span><span>${mTel(b.phone)}</span></div><button class="btn btn-p btn-w" data-act="genpix">Confirmar compra e gerar Pix</button></div>`)}}
+/* ===== 9. PAINEL ADMINISTRATIVO ===== */
+const A={};
+A.login=()=>({html:authWrap(`<div><h1>Painel administrativo</h1><p class="mut">Acesso demonstrativo, sem autenticação real. Não use credenciais verdadeiras.</p></div><button class="btn btn-p btn-w" data-act="adminin">Entrar como administrador (demonstração)</button><a class="sm" href="#/login">Voltar ao login do lojista</a>`)});
+A.dashboard=()=>{const d=API.admin();return{title:'Painel administrativo',html:`<div class="${S.maint?'note':'ok-box'}" style="margin-bottom:16px">Estado de manutenção: <b>${S.maint?'ativado (demonstração)':'desativado'}</b> · <a href="#/admin/manutencao">gerenciar</a></div>
+ <div class="grid g4">${kpi('Total de lojistas',d.users)}${kpi('Pagamentos pendentes',d.pend,'Parcelas a receber')}${kpi('Pagamentos confirmados',d.conf,'Parcelas pagas')}${kpi('Volume de vendas',fmt(d.vol),'Soma dos links criados')}${kpi('Saques aguardando',d.awN,fmt(d.awV),'main')}</div>
+ <div class="grid g2" style="margin-top:16px"><div class="card"><h2 style="margin-bottom:8px">Atividade recente</h2>${d.act.map(a=>`<div class="li"><span>${esc(a.t)}</span><span class="mut sm">${fd(a.d)}</span></div>`).join('')}</div>
+ <div class="card"><h2 style="margin-bottom:8px">Solicitações pendentes</h2>${d.aw.length?d.aw.map(w=>`<div class="li"><div><b>${esc(w.store)}</b><div class="mut sm">${w.id} · ${fmt(w.amount)}</div></div><a class="btn btn-s btn-sm" href="#/admin/saques">Analisar</a></div>`).join(''):empty('Nenhuma solicitação pendente')}</div></div>
+ <div class="card" style="margin-top:16px"><h2 style="margin-bottom:8px">Últimas vendas</h2>${tbl(['Código','Loja','Comprador','Valor','Status'],d.last.map(s=>[s.id,esc(s.store),esc(s.buyer.name),`<span class="num">${fmt(s.total)}</span>`,badge(s.status)]))}</div>`}};
+A.usuarios=()=>{const L=list({ph:'Buscar lojista, loja ou e-mail',per:6,opts:['Ativo','Pendente','Suspenso'],get:(q,st)=>S.users.filter(u=>(!st||u.status===st)&&has(q,u.name,u.store,u.email)),heads:['Nome','Loja','E-mail','Telefone','Cadastro','Status',''],empty:'Nenhum usuário encontrado',
+ row:u=>[esc(u.name),esc(u.store),esc(u.email),esc(u.phone),fd(u.reg),badge(u.status),`<button class="btn btn-s btn-sm" data-act="user" data-id="${u.id}">Detalhes</button>`]});return{title:'Usuários',html:L.html,mount:L.mount}};
+A.pagamentos=()=>{const L=list({ph:'Buscar por código, loja ou comprador',opts:['Aguardando','Ativa','Quitada','Expirada'],get:(q,st)=>S.sales.filter(s=>(!st||s.status===st)&&has(q,s.id,s.store,s.buyer.name)).sort((a,b)=>b.created.localeCompare(a.created)),heads:['Código','Loja','Comprador','Valor','Data','Status','Restantes'],empty:'Nenhum pagamento encontrado',
+ row:s=>[`<b>${s.id}</b>`,esc(s.store),esc(s.buyer.name),`<span class="num">${fmt(s.total)}</span>`,fd(s.created),badge(s.status),s.inst.filter(i=>!i.paidAt).length+' de '+s.n]});return{title:'Pagamentos',html:L.html,mount:L.mount}};
+A.saques=()=>{const L=list({ph:'Buscar lojista ou código',per:6,opts:['Aguardando aprovação','Concluído','Rejeitado'],get:(q,st)=>S.wd.filter(w=>(!st||w.status===st)&&has(q,w.id,w.store,w.name)).sort((a,b)=>b.date.localeCompare(a.date)),heads:['Lojista','Valor','Saldo demonstrativo','Chave Pix','Data','Status','Ações'],empty:'Nenhuma solicitação',
+ row:w=>[`<b>${esc(w.store)}</b><div class="mut sm">${esc(w.name)}</div>`,`<b class="num">${fmt(w.amount)}</b>`,`<span class="num">${fmt(S.users.find(u=>u.id===w.owner).bal)}</span>`,`${w.keyType}: ${esc(mKey(w.keyType,w.key))}`,fd(w.date),badge(w.status),w.status==='Aguardando aprovação'?`<div class="row"><button class="btn btn-p btn-sm" data-act="wd" data-ok="1" data-id="${w.id}">Aprovar</button><button class="btn btn-d btn-sm" data-act="wd" data-id="${w.id}">Rejeitar</button></div>`:'—']});
+ return{title:'Aprovação de saques',html:`<div class="note" style="margin-bottom:12px">Ações demonstrativas: nenhuma transferência real é executada.</div>`+L.html,mount(){L.mount();window._L=L}}};
+A.manutencao=()=>({title:'Modo de manutenção',html:`<div class="grid g2" style="align-items:start"><div class="card stack"><h2>Estado demonstrativo</h2><p class="mut">Ativar apenas altera a prévia abaixo. Nenhum acesso é bloqueado de fato.</p><div>${badge(S.maint?'Pendente':'Ativo').replace(S.maint?'Pendente':'Ativo',S.maint?'Manutenção ativada':'Operação normal')}</div><button class="btn ${S.maint?'btn-s':'btn-p'}" data-act="maint">${S.maint?'Desativar manutenção':'Ativar manutenção'}</button></div>
+ <div class="card"><h2 style="margin-bottom:12px">Prévia da página pública</h2><div style="border:1px dashed var(--bd);border-radius:var(--rs);padding:32px 16px;text-align:center;background:var(--bg)">${brand().replace('class="brand"','class="brand" style="justify-content:center;margin-bottom:12px"')}<b>${S.maint?'Estamos em manutenção':'Tudo funcionando'}</b><p class="mut">${S.maint?'Voltamos em instantes. Suas parcelas continuam seguras.':'A página pública exibiria o checkout normalmente.'}</p></div></div></div>`});
+/* ===== 10. EVENTOS E INTERAÇÕES ===== */
+const ACT={
+ copy:b=>copy(b.dataset.t),
+ pw:b=>{const i=$('#'+b.dataset.t);i.type=i.type==='password'?'text':'password'},
+ menu:()=>{const m=$('#menu');m.hidden=!m.hidden},
+ logout:()=>{S.session=null;save();toast('Sessão encerrada');location.hash='#/login'},
+ reset:()=>confirmD('Restaurar dados de demonstração','Todos os registros locais voltarão ao estado inicial.','Restaurar',()=>{S=seed();save();toast('Dados restaurados');location.hash='#/login';route()},'btn-d'),
+ demo:()=>{$('#em').value='demo@casaaurora.demo';$('#pw').value='demo1234';$('#lf').requestSubmit()},
+ forgot:(b,e)=>{e.preventDefault();modal({title:'Recuperar senha',body:`<p class="mut" style="margin-bottom:12px">Simulação: nenhum e-mail será enviado.</p><input id="rem" type="email" placeholder="seu@email.com" aria-label="E-mail">`,ok:'Enviar link',fn:()=>toast('Se o e-mail existir, enviaríamos um link (simulado)')})},
+ max:()=>{const el=$('#wv');el.dataset.c=me().bal;el.value=fmt(me().bal)},
+ genpix:()=>{CK.stage='pix';route()},
+ again:()=>{CK.stage='pix';route()},
+ paydemo:b=>confirmD('Confirmar pagamento fictício','Isto simula o pagamento da parcela e atualiza o histórico e os indicadores. Nenhum dinheiro é movimentado.','Confirmar pagamento',()=>{API.pay(b.dataset.id);CK.stage='ok';toast('Pagamento confirmado (demonstração)');route()}),
+ adminin:()=>{S.session='admin';save();location.hash='#/admin/dashboard'},
+ maint:()=>{S.maint=!S.maint;save();toast(S.maint?'Manutenção ativada (demo)':'Manutenção desativada');route()},
+ user:b=>{const u=S.users.find(x=>x.id===b.dataset.id);modal({title:u.name,ok:'Fechar',body:`<div class="li"><span class="mut">Loja</span>${esc(u.store)}</div><div class="li"><span class="mut">E-mail</span>${esc(u.email)}</div><div class="li"><span class="mut">Telefone</span>${esc(u.phone)}</div><div class="li"><span class="mut">TikTok</span>${esc(u.tiktok)}</div><div class="li"><span class="mut">Saldo (fictício)</span>${fmt(u.bal)}</div><div class="li"><span class="mut">Vendas</span>${S.sales.filter(s=>s.owner===u.id).length}</div>`})},
+ wd:b=>{const ok=b.dataset.ok==='1',w=S.wd.find(x=>x.id===b.dataset.id);confirmD(ok?'Aprovar saque':'Rejeitar saque',`${ok?'Aprovar':'Rejeitar'} ${fmt(w.amount)} de ${esc(w.store)}? ${ok?'':'O valor volta ao saldo do lojista.'} (demonstração)`,ok?'Aprovar':'Rejeitar',()=>{API.adminWd(w.id,ok);toast(ok?'Saque aprovado (simulado)':'Saque rejeitado');route()},ok?'btn-p':'btn-d')}
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b&&ACT[b.dataset.act]){ACT[b.dataset.act](b,e);}
+ else if(!e.target.closest('.top'))document.querySelectorAll('#menu').forEach(m=>m.hidden=true)});
+/* ===== 11. INICIALIZAÇÃO E ROTEAMENTO ===== */
+function route(){
+ const [a,b,c]=(location.hash.slice(2)||'login').split('/'),app=$('#app');let pg;window.scrollTo(0,0);
+ if(a==='checkout'){pg=checkout(b||'invalido');app.innerHTML=pg.html;document.title='Checkout · Vello';return}
+ if(a==='app'){if(S.session!=='merchant'){location.hash='#/login';return}
+  const key=P[b]?b:'dashboard';pg=P[key](c);app.innerHTML=shellMerchant(key==='venda'?'links':key,pg.title,pg.html);document.title=pg.title.replace(/<[^>]+>/g,'')+' · Vello'}
+ else if(a==='admin'){if(b==='login'||!b){pg=A.login();app.innerHTML=pg.html}else{if(S.session!=='admin'){location.hash='#/admin/login';return}
+  const key=A[b]?b:'dashboard';pg=A[key]();app.innerHTML=shellAdmin(key,pg.title,pg.html);document.title=pg.title+' · Admin Vello'}}
+ else{if(S.session==='merchant'&&a==='login'){location.hash='#/app/dashboard';return}pg=(P[a==='cadastro'?'cadastro':'login'])();app.innerHTML=pg.html}
+ pg.mount&&pg.mount()}
+document.addEventListener('mousemove',e=>{const k=e.target.closest&&e.target.closest('.kpi.main');if(!k)return;const r=k.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;k.style.transform=`perspective(900px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateY(-2px)`});
+document.addEventListener('mouseout',e=>{const k=e.target.closest&&e.target.closest('.kpi.main');if(k)k.style.transform=''});
+window.addEventListener('hashchange',route);route();
+</script>
+</body>
+</html>
