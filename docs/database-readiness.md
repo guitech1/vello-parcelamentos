@@ -1,62 +1,29 @@
-# Preparação para Banco de Dados
+# Estado atual da persistência
 
-Esta etapa **não implementa** banco de dados, migrações nem conexões reais.
+Este documento substitui a proposta inicial de prontidão para banco de dados. A aplicação Next.js agora utiliza Supabase Auth e consultas ao banco para as telas do lojista; o frontend antigo de demonstração foi retirado da entrada pública.
 
-O objetivo é deixar a aplicação e a arquitetura prontas para receber a persistência definitiva sem reescrever a interface.
+## Implementado
 
-## Modelos de dados principais (propostos)
+- Cliente Supabase browser e server com variáveis de ambiente.
+- Cadastro, login, logout e recuperação/atualização de senha.
+- Perfil do lojista, links de parcelamento, parcelas, chamados e histórico de saques lidos do banco com RLS.
+- Criação de links limitada a 1–10 parcelas e valores monetários convertidos para centavos inteiros.
+- Cancelamento de links por operação de servidor, recusado quando já existe qualquer pagamento associado.
+- Solicitação de saque por operação transacional com reserva de saldo líquido confirmado, chave Pix do perfil e chave idempotente.
+- Checkout público com retorno mínimo de dados.
+- Criação de cobrança NexusPag no servidor e verificação HMAC do webhook.
+- Processamento atômico e idempotente da confirmação de pagamento em função SQL.
+- Administração baseada em private.app_admins, com revisão auditada de saques.
 
-### User (lojista)
-- id, name, email, phone, storeName, tiktok?, status, balanceCents, releaseCents, createdAt, updatedAt
+## Limitações não resolvidas
 
-### Sale (venda / link)
-- id, ownerId, storeName, buyerName, buyerCpf, buyerPhone, totalCents, installments, summary, status, createdAt
+- A aplicação ainda depende de credenciais privadas de servidor para checkout, saques e administração.
+- NexusPag ainda precisa ser configurada e testada em sandbox. Não foi criada nem confirmada cobrança real durante a implementação.
+- Aprovar um saque não envia uma transferência Pix; o processamento permanece manual.
+- O painel lista até 100 registros por categoria e ainda não tem paginação.
+- Não há um fluxo automatizado de reembolso, reconciliação financeira ou transferências de saque.
+- O build/teste mais recente deve ser confirmado pelo GitHub Actions antes de publicar.
 
-### Installment (parcela)
-- id, saleId, number, valueCents, dueDate, paidAt?, status
+## Testes
 
-### Withdrawal (saque)
-- id, ownerId, amountCents, keyType, key, holder, status, createdAt, processedAt?
-
-### Admin / Platform
-- maintenanceMode (boolean)
-
-## Serviços que devem ser implementados no backend
-
-| Serviço              | Operações principais                                      |
-|----------------------|-----------------------------------------------------------|
-| Auth                 | login, register, session, logout                          |
-| Dashboard (merchant) | getKPIs, recentTransactions, upcomingInstallments         |
-| Sales                | create, list, getById, updateStatus                       |
-| Payments             | list, markPaid (via webhook)                              |
-| Withdrawals          | request, list, approve, reject                            |
-| Admin                | listUsers, listSales, getPlatformStats, setMaintenance    |
-| Profile              | get, update                                               |
-
-## Camada de serviços no frontend
-
-Todos os acessos a dados devem passar por interfaces em `src/services/`.
-
-Implementação atual: `services/demo/*` (localStorage + seed).  
-Implementação futura: `services/api/*` (fetch para backend).
-
-A troca deve ser feita por configuração (variável de ambiente ou factory), sem alterar componentes de UI.
-
-## O que NÃO deve ser feito nesta etapa
-
-- Criar tabelas, migrations ou schemas de banco.
-- Configurar Prisma, Drizzle, Supabase client de produção, etc.
-- Armazenar credenciais ou connection strings.
-- Fazer chamadas reais a APIs financeiras.
-
-## Checklist de prontidão
-
-- [x] Separação UI × serviços × dados
-- [x] Tipos e modelos documentados
-- [x] Dados de demonstração coerentes entre telas
-- [x] Contratos de serviço definidos
-- [x] Persistência local apenas para demo
-- [x] Documentação de pontos de integração
-- [ ] Backend + banco real
-- [ ] Autenticação e autorização
-- [ ] Webhooks e idempotência
+O workflow .github/workflows/ci.yml executa os testes de centavos e a build Next.js. Os testes cobrem formatos monetários, rejeição de valores inválidos e soma exata das parcelas; testes de integração isolados para Auth, RLS, webhook e saques ainda são necessários antes de uso financeiro em produção.
