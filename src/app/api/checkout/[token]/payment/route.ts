@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { parseBRLCents } from '@/lib/money';
+import { centsToDecimal, parseBRLCents } from '@/lib/money';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,7 +47,7 @@ export async function POST(_request: Request, context: { params: Promise<{ token
     installment_id: installment.id,
     provider: 'nexuspag',
     external_id: externalId,
-    amount: (cents / 100).toFixed(2),
+    amount: centsToDecimal(cents),
     status: 'pending',
     provider_payload: {},
   }, { onConflict: 'external_id', ignoreDuplicates: true });
