@@ -163,10 +163,32 @@ export default function Home() {
     if (!supabase || !user) return;
     if (!profileName.trim() || !profileBusiness.trim()) { setError('Informe seu nome e o nome da loja.'); return; }
     setBusy(true); setError(''); setNotice('');
-    const { error: updateError } = await supabase.from('profiles').update({ full_name: profileName.trim(), business_name: profileBusiness.trim(), phone: profilePhone.trim() }).eq('user_id', user.id);
+    const { error: updateError } = await supabase.from('profiles').update({ full_name: profileName.trim(), business_name: profileBusiness.trim(), phone: profilePhone.trim(), pix_key: profilePixKey.trim(), pix_key_type: profilePixType }).eq('user_id', user.id);
     if (updateError) setError('Não foi possível salvar o perfil. Confira as permissões RLS.');
     else setNotice('Perfil atualizado.');
     setBusy(false);
+  }
+
+  async function createWithdrawal(event: FormEvent) {
+    event.preventDefault();
+    if (!user) return;
+    const cents = parseBRLCents(withdrawalAmount);
+    if (cents === null || cents < 100) { setError('Informe um valor válido de pelo menos R$ 1,00.'); return; }
+    setBusy(true); setError(''); setNotice('');
+    try {
+      const response = await fetch('/api/withdrawals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: withdrawalAmount, requestKey: crypto.randomUUID() }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Não foi possível solicitar o saque.');
+      setWithdrawalAmount('');
+      setNotice('Solicitação registrada para análise. A transferência não é automática.');
+      await refreshData(user);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Não foi possível solicitar o saque.');
+    } finally { setBusy(false); }
   }
 
   async function signOut() {
