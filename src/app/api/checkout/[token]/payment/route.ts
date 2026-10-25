@@ -32,7 +32,7 @@ export async function POST(_request: Request, context: { params: Promise<{ token
 
   const { data: installmentData, error: installmentError } = await admin.from('installments')
     .select('id,amount,status,installment_number')
-    .eq('link_id', record.id).eq('installment_number', 1).maybeSingle();
+    .eq('payment_link_id', record.id).eq('installment_number', 1).maybeSingle();
   if (installmentError) return NextResponse.json({ error: 'Não foi possível preparar a parcela.' }, { status: 503 });
   const installment = installmentData as InstallmentRecord | null;
   if (!installment) return NextResponse.json({ error: 'As parcelas ainda não foram preparadas para este link.' }, { status: 409 });
@@ -43,12 +43,13 @@ export async function POST(_request: Request, context: { params: Promise<{ token
   const externalId = `vello-installment-${installment.id}`;
   const { error: insertError } = await admin.from('payments').upsert({
     merchant_id: record.merchant_id,
-    link_id: record.id,
+    payment_link_id: record.id,
     installment_id: installment.id,
     provider: 'nexuspag',
     external_id: externalId,
     amount: (cents / 100).toFixed(2),
     status: 'pending',
+    provider_payload: {},
   }, { onConflict: 'external_id', ignoreDuplicates: true });
   if (insertError) return NextResponse.json({ error: 'Não foi possível registrar a cobrança.' }, { status: 503 });
 
