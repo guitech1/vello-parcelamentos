@@ -1,83 +1,47 @@
-# Integração NexusPag — Plano e Documentação Confirmada
+# Integração NexusPag
 
-**Fonte oficial consultada:** https://nexuspag.com/
-
-> Esta documentação registra apenas o que está publicamente disponível e confirmado. Nenhum endpoint, parâmetro ou comportamento foi inventado.
-
-## Visão geral confirmada
-
-- Base URL: `https://nexuspag.com`
-- API v1.0
-- Foco: cobranças PIX, SPEI (MXN), splits, webhooks assinados e integrações server-to-server.
-- Autenticação: header `x-api-key` (API key obtida no Dashboard → Integrações → API Keys).
-- Webhooks: validação HMAC com secret obtido no Dashboard → Integrações → Webhooks.
-- Formato: JSON (`Content-Type: application/json`).
-- Datas: ISO 8601, timezone UTC.
-- Idempotência: usar `external_id` para evitar cobranças duplicadas no mesmo pedido.
+Documentação oficial consultada: https://nexuspag.com/docs, https://nexuspag.com/docs/create-pix, https://nexuspag.com/docs/get-pix e https://nexuspag.com/docs/webhook-payment.
 
 ## Endpoints confirmados
 
-### Criar cobrança PIX
-- **Método / Path:** `POST /api/pix/create`
-- **Descrição:** Gera QR Code PIX para recebimento. Suporta split automático.
-- **Uso previsto na Vello:** criar a cobrança da parcela atual no momento em que o comprador confirma a compra no checkout.
+### Criar cobrança Pix
 
-### Consultar PIX
-- **Método / Path:** `GET /api/pix/{id}`
-- **Descrição:** Consulta status e detalhes de uma cobrança PIX (incluindo splits). O `{id}` pode ser o UUID interno, o txid do gateway ou o `external_id` informado na criação.
-- **Uso previsto:** polling ou consulta pontual após criação; preferir webhook para atualização de status.
+- Método: POST /api/pix/create
+- Base URL: https://nexuspag.com
+- Autenticação: header x-api-key, somente no servidor.
+- Corpo utilizado pela Vello: amount (reais, mínimo R$ 1,00), description, external_id, webhook_url e expiration.
+- A resposta documentada contém transaction.id, transaction.status, transaction.pix_copia_cola, transaction.qr_code_base64, transaction.expires_at e transaction.net_amount.
+- external_id é a chave de idempotência; uma repetição com o mesmo identificador deve recuperar a cobrança existente em vez de criar outra.
 
-### Criar cobrança MXN (SPEI)
-- **Método / Path:** `POST /api/spei/create`
-- **Descrição:** Gera instrução SPEI com CLABE.
-- **Uso previsto:** fora do escopo inicial da Vello (foco Brasil/Pix).
+### Consultar cobrança Pix
 
-## O que ainda precisa ser validado / obtido
+- Método: GET /api/pix/{id}
+- A documentação lista os estados pending, paid, expired e cancelled.
+- A rota de consulta ainda não está exposta na aplicação. A reconciliação por consulta/polling continua sendo uma etapa pendente.
 
-- Payload exato de `POST /api/pix/create` (campos obrigatórios, opcionais, split).
-- Formato da resposta (QR Code, código copia-e-cola, expiração, status inicial).
-- Lista completa de status possíveis da cobrança.
-- Payload e eventos dos webhooks (quais eventos, estrutura do body, header de assinatura).
-- Tratamento de erros e códigos HTTP.
-- Limites de taxa (rate limits).
-- Ambiente de sandbox / credenciais de teste.
+## Webhook de pagamento
 
-**Ação necessária:** acesso ao painel NexusPag da conta da Vello + documentação completa ou suporte oficial.
+- Evento de confirmação: payment.confirmed.
+- Headers documentados: X-Webhook-Event e X-Webhook-Signature.
+- A assinatura usa o formato t=<unix>,v1=<hmac_hex> e HMAC-SHA256 do texto <unix>.<body HTTP bruto>, com o segredo configurado no painel NexusPag.
+- A aplicação rejeita assinaturas ausentes/inválidas e timestamps com diferença superior a cinco minutos.
+- O handler usa uma função SQL transacional com idempotência, valida o external_id, o ID da transação e o valor antes de marcar pagamento e parcela como pagos.
+- A função SQL só pode ser executada por service_role; anon e authenticated não têm permissão de execução.
 
-## Arquitetura de integração recomendada (futuro)
+## Implementação no repositório
 
-```
-Frontend (checkout)
-      ↓  (apenas UI)
-Backend Vello (Route Handler / API)
-      ↓  x-api-key (nunca no frontend)
-NexusPag POST /api/pix/create
-      ↓
-Armazena external_id + id da cobrança no banco
-      ↓
-Webhook NexusPag → Backend Vello (valida HMAC)
-      ↓
-Atualiza status da parcela + saldos + notifica lojista
-```
+- POST /api/checkout/[token]/payment cria a cobrança no servidor, usando external_id estável por parcela e o endpoint documentado.
+- POST /api/webhooks/nexuspag verifica a assinatura e encaminha o evento para a função transacional.
+- O checkout exibe o Pix retornado pelo provedor; o navegador não marca pagamentos como pagos.
+- A cobrança implementada neste estágio é somente da primeira parcela do link.
+- A chave da API e o segredo do webhook não são incluídos no frontend nem nos arquivos versionados.
 
-### Regras de segurança obrigatórias
+## Bloqueios e limites restantes
 
-1. API key e webhook secret **somente no backend** (variáveis de ambiente).
-2. Nunca gerar ou exibir QR Code / código Pix real no frontend sem confirmação de origem do backend.
-3. Sempre enviar `external_id` único por parcela/venda para idempotência.
-4. Validar assinatura HMAC de todos os webhooks antes de processar.
-5. Tratar status intermediários e finais de forma idempotente no banco.
-6. Registrar auditoria de criação de cobrança e mudança de status.
+- Definir no ambiente de servidor: NEXUSPAG_API_KEY, NEXUSPAG_WEBHOOK_SECRET, SUPABASE_SERVICE_ROLE_KEY e APP_URL.
+- Testar em sandbox com credenciais válidas antes de habilitar pagamentos em produção.
+- Implementar consulta/reconciliação de status, expiração/cancelamento do lado do provedor e fluxo de reembolso se necessário.
+- Saques aprovados no painel são apenas autorizados para processamento manual; nenhuma transferência Pix é executada.
+- Não houve criação de cobrança real durante esta implementação.
 
-## Status da implementação nesta etapa
-
-- [x] Análise da documentação pública disponível
-- [x] Documentação dos endpoints confirmados
-- [x] Plano de arquitetura server-to-server
-- [ ] Implementação de chamadas reais (pendente de credenciais e backend)
-- [ ] Webhooks (pendente)
-- [ ] Testes em sandbox (pendente)
-
----
-
-Última atualização com base em https://nexuspag.com/ (outubro 2026).
+Última revisão: outubro de 2026.
