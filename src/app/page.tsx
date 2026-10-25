@@ -18,7 +18,7 @@ const date = (value: string) => new Date(value).toLocaleDateString('pt-BR');
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(supabase));
   const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,7 +27,7 @@ export default function Home() {
   const [fullName, setFullName] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [notice, setNotice] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(supabase ? '' : 'Configuração ausente. Defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY no ambiente de deploy.');
   const [busy, setBusy] = useState(false);
   const [links, setLinks] = useState<LinkRow[]>([]);
   const [installments, setInstallments] = useState<InstallmentRow[]>([]);
@@ -70,11 +70,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!supabase) {
-      setError('Configuração ausente. Defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY no ambiente de deploy.');
-      setLoading(false);
-      return;
-    }
+    if (!supabase) return;
     let active = true;
     supabase.auth.getUser().then(({ data }) => {
       if (!active) return;
