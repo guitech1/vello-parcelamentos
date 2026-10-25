@@ -4,15 +4,18 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 
 type CheckoutInfo = { description: string; totalAmount: string | number; installmentCount: number };
+type PixInfo = { pixCopyPaste: string; qrCodeBase64: string | null; expiresAt: string | null };
+
 export default function CheckoutPage() {
   const params = useParams<{ token: string }>();
   const [info, setInfo] = useState<CheckoutInfo | null>(null);
+  const [pix, setPix] = useState<PixInfo | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [paying, setPaying] = useState(false);
 
   useEffect(() => {
-    const token = encodeURIComponent(params.token);
-    fetch('/api/checkout/' + token, { cache: 'no-store' })
+    fetch('/api/checkout/' + encodeURIComponent(params.token), { cache: 'no-store' })
       .then(async response => {
         const body = await response.json();
         if (!response.ok) throw new Error(body.error || 'Este link está indisponível.');
@@ -22,12 +25,30 @@ export default function CheckoutPage() {
       .finally(() => setLoading(false));
   }, [params.token]);
 
+  async function createPix() {
+    setPaying(true);
+    setError('');
+    try {
+      const response = await fetch('/api/checkout/' + encodeURIComponent(params.token) + '/payment', { method: 'POST', cache: 'no-store' });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || 'Não foi possível preparar o Pix.');
+      setPix(body as PixInfo);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Não foi possível preparar o Pix.');
+    } finally {
+      setPaying(false);
+    }
+  }
+
   const amount = info ? Number(info.totalAmount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '';
   return <main className="auth-screen"><section className="auth-card">
     <div className="brand-mark">V</div><p className="eyebrow">VELLO PARCELAMENTOS</p>
     {loading ? <><h1>Consultando cobrança</h1><p className="muted">Validando o link com o servidor.</p></> :
-      error ? <><h1>Checkout indisponível</h1><p className="alert error" role="alert">{error}</p></> :
-      info ? <><h1>{info.description}</h1><p className="muted">Resumo da cobrança</p><div className="stat-card"><p>Valor total</p><strong>{amount}</strong><span>Parcelamento em até {info.installmentCount}x</span></div><p className="alert success">Este link foi consultado no servidor. A geração de Pix ainda não está habilitada até a integração autenticada com o provedor.</p></> : null}
-    <p className="small-note">Não envie dados de pagamento em resposta a mensagens. A Vello não confirma pagamentos nesta página.</p>
+      error && !info ? <><h1>Checkout indisponível</h1><p className="alert error" role="alert">{error}</p></> :
+      info ? <><h1>{info.description}</h1><p className="muted">Resumo da cobrança</p><div className="stat-card"><p>Valor total</p><strong>{amount}</strong><span>Parcelamento em até {info.installmentCount}x</span></div>
+        {error && <p className="alert error" role="alert">{error}</p>}
+        {pix ? <div className="pix-panel"><h2>Pix gerado pelo provedor</h2>{pix.qrCodeBase64 && <img className="qr-code" src={pix.qrCodeBase64} alt="QR Code Pix" /> }<label className="pix-label">Código Pix copia e cola<textarea readOnly value={pix.pixCopyPaste} /></label><button className="secondary-button" onClick={() => { void navigator.clipboard.writeText(pix.pixCopyPaste).catch(() => setError('Não foi possível copiar automaticamente. Selecione e copie o código.')); }}>Copiar código Pix</button>{pix.expiresAt && <p className="small-note">Expira em: {new Date(pix.expiresAt).toLocaleString('pt-BR')}</p>}</div> : <><p className="small-note">A cobrança só será criada se as credenciais do provedor estiverem configuradas no servidor.</p><button className="primary-button" onClick={() => void createPix()} disabled={paying}>{paying ? 'Preparando Pix...' : 'Gerar cobrança Pix'}</button></>}
+      </> : null}
+    <p className="small-note">A Vello só considera um pagamento confirmado após receber e validar a confirmação autenticada do provedor.</p>
   </section></main>;
 }
