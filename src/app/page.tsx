@@ -8,6 +8,7 @@ import { centsToDecimal, parseBRLCents } from '@/lib/money';
 type LinkRow = { id: string; public_token: string; description: string; total_amount: string | number; installment_count: number; status: string; created_at: string };
 type InstallmentRow = { id: string; amount: string | number; status: string; due_at: string; installment_number: number };
 type TicketRow = { id: string; subject: string; status: string; created_at: string };
+type WithdrawalRow = { id: string; amount: string | number; status: string; created_at: string };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -29,7 +30,8 @@ export default function Home() {
   const [links, setLinks] = useState<LinkRow[]>([]);
   const [installments, setInstallments] = useState<InstallmentRow[]>([]);
   const [tickets, setTickets] = useState<TicketRow[]>([]);
-  const [tab, setTab] = useState<'overview' | 'links' | 'installments' | 'support' | 'profile'>('overview');
+  const [withdrawals, setWithdrawals] = useState<WithdrawalRow[]>([]);
+  const [tab, setTab] = useState<'overview' | 'links' | 'installments' | 'withdrawals' | 'support' | 'profile'>('overview');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [count, setCount] = useState('1');
@@ -38,23 +40,30 @@ export default function Home() {
   const [profileName, setProfileName] = useState('');
   const [profileBusiness, setProfileBusiness] = useState('');
   const [profilePhone, setProfilePhone] = useState('');
+  const [profilePixKey, setProfilePixKey] = useState('');
+  const [profilePixType, setProfilePixType] = useState('random');
+  const [withdrawalAmount, setWithdrawalAmount] = useState('');
 
   const refreshData = useCallback(async (currentUser: User) => {
     if (!supabase) return;
-    const [linkResult, installmentResult, ticketResult, profileResult] = await Promise.all([
+    const [linkResult, installmentResult, ticketResult, profileResult, withdrawalResult] = await Promise.all([
       supabase.from('payment_links').select('id,public_token,description,total_amount,installment_count,status,created_at').eq('merchant_id', currentUser.id).order('created_at', { ascending: false }).limit(50),
       supabase.from('installments').select('id,amount,status,due_at,installment_number').eq('merchant_id', currentUser.id).order('due_at', { ascending: true }).limit(100),
       supabase.from('support_tickets').select('id,subject,status,created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(50),
-      supabase.from('profiles').select('full_name,business_name,phone').eq('user_id', currentUser.id).maybeSingle(),
+      supabase.from('profiles').select('full_name,business_name,phone,pix_key,pix_key_type').eq('user_id', currentUser.id).maybeSingle(),
+      supabase.from('withdrawals').select('id,amount,status,created_at').eq('merchant_id', currentUser.id).order('created_at', { ascending: false }).limit(50),
     ]);
     if (linkResult.error) setError('Não foi possível carregar os links. Verifique as políticas RLS e tente novamente.');
     else setLinks((linkResult.data ?? []) as LinkRow[]);
     if (!installmentResult.error) setInstallments((installmentResult.data ?? []) as InstallmentRow[]);
     if (!ticketResult.error) setTickets((ticketResult.data ?? []) as TicketRow[]);
+    if (!withdrawalResult.error) setWithdrawals((withdrawalResult.data ?? []) as WithdrawalRow[]);
     if (profileResult.data) {
       setProfileName(profileResult.data.full_name ?? '');
       setProfileBusiness(profileResult.data.business_name ?? '');
       setProfilePhone(profileResult.data.phone ?? '');
+      setProfilePixKey(profileResult.data.pix_key ?? '');
+      setProfilePixType(profileResult.data.pix_key_type ?? 'random');
     }
   }, []);
 
@@ -113,9 +122,7 @@ export default function Home() {
     event.preventDefault();
     if (!supabase || !user) return;
     setError(''); setNotice('');
-    const normalized = amount.trim().replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
-    const value = Number(normalized);
-    const cents = Math.round(value * 100);
+    const cents = parseBRLCents(amount);
     const installmentsCount = Number(count);
     if (!description.trim()) { setError('Informe a descrição da cobrança.'); return; }
     if (cents === null || !Number.isSafeInteger(cents) || cents < 100 || cents > 100000000) { setError('Informe um valor entre R$ 1,00 e R$ 1.000.000,00.'); return; }
