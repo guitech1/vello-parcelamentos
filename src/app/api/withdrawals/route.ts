@@ -6,6 +6,9 @@ import { centsToDecimal, parseBRLCents } from '@/lib/money';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    return NextResponse.json({ error: 'Autenticação não configurada no servidor.' }, { status: 503 });
+  }
   const sessionClient = await createServerClient();
   const { data: { user }, error: authError } = await sessionClient.auth.getUser();
   if (authError || !user) return NextResponse.json({ error: 'Faça login para solicitar um saque.' }, { status: 401 });
