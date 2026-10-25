@@ -94,7 +94,7 @@ export async function POST(_request: Request, context: { params: Promise<{ token
     pix_copy_paste: body.transaction.pix_copia_cola,
     provider_payload: body,
     status: 'pending',
-  }).eq('external_id', externalId);
+  }).eq('external_id', externalId).neq('status', 'paid');
   if (saveError) return NextResponse.json({ error: 'Cobrança criada no provedor, mas o registro local precisa ser reconciliado. Não tente criar outra cobrança.' }, { status: 503 });
 
   return NextResponse.json({
