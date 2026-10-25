@@ -79,7 +79,7 @@ export default function CheckoutPage() {
     <main className="checkout-shell">
       <section className="checkout-card">
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-          <Image src="/logo.png" alt="Vello" width={160} height={48} className="brand-logo large" style={{ height: 48, width: 'auto' }} priority />
+          <Image src="/logo.svg" alt="Vello" width={160} height={48} className="brand-logo large" style={{ height: 48, width: 'auto' }} priority unoptimized />
         </div>
         <p className="eyebrow" style={{ textAlign: 'center' }}>Pagamento seguro</p>
 

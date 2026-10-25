@@ -86,7 +86,7 @@ export default function AdminPage() {
     <main className="app-shell">
       <header className="topbar">
         <div className="brand">
-          <Image src="/logo.png" alt="Vello" width={120} height={32} className="brand-logo header" style={{ height: 32, width: 'auto' }} priority />
+          <Image src="/logo.svg" alt="Vello" width={120} height={32} className="brand-logo header" style={{ height: 32, width: 'auto' }} priority unoptimized />
           <span>Vello <b>Administração</b></span>
         </div>
         <Link href="/" className="secondary-button compact" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
