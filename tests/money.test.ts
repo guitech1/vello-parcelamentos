@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
-import { parseBRLCents, splitInstallments } from '../src/lib/money.ts';
+import { centsToDecimal, parseBRLCents, splitInstallments } from '../src/lib/money.ts';
 
 test('parses Brazilian and decimal money formats as exact cents', () => {
   assert.equal(parseBRLCents('1.234,56'), 123456);
@@ -8,6 +8,12 @@ test('parses Brazilian and decimal money formats as exact cents', () => {
   assert.equal(parseBRLCents('1234.56'), 123456);
   assert.equal(parseBRLCents('R$ 9,90'), 990);
   assert.equal(parseBRLCents('12'), 1200);
+});
+
+test('formats integer cents without float rounding', () => {
+  assert.equal(centsToDecimal(0), '0.00');
+  assert.equal(centsToDecimal(1), '0.01');
+  assert.equal(centsToDecimal(123456), '1234.56');
 });
 
 test('rejects malformed or over-precision money input', () => {
