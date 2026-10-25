@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
-import { centsToDecimal, parseBRLCents } from '@/lib/money';
+import { parseBRLCents } from '@/lib/money';
 
 type LinkRow = { id: string; public_token: string; description: string; total_amount: string | number; installment_count: number; status: string; created_at: string };
 type InstallmentRow = { id: string; amount: string | number; status: string; due_at: string; installment_number: number };
@@ -133,17 +133,15 @@ export default function Home() {
     if (!Number.isInteger(installmentsCount) || installmentsCount < 1 || installmentsCount > 10) { setError('Escolha de 1 a 10 parcelas.'); return; }
     setBusy(true);
     try {
-      const { error: insertError } = await supabase.from('payment_links').insert({
-        merchant_id: user.id,
-        public_token: crypto.randomUUID(),
-        description: description.trim(),
-        total_amount: centsToDecimal(cents),
-        installment_count: installmentsCount,
-        status: 'active',
+      const response = await fetch('/api/links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: description.trim(), amount, installmentCount: installmentsCount }),
       });
-      if (insertError) throw insertError;
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Não foi possível criar o link.');
       setDescription(''); setAmount(''); setCount('1');
-      setNotice('Link criado. A cobrança Pix real permanece indisponível até a integração de pagamentos ser configurada.');
+      setNotice('Link criado. O Pix só será gerado no checkout quando as credenciais privadas do provedor estiverem configuradas.');
       await refreshData(user);
       setTab('links');
     } catch (e) {
