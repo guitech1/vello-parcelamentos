@@ -22,6 +22,8 @@ export default function Home() {
   const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [recoveryMode, setRecoveryMode] = useState(false);
   const [fullName, setFullName] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [notice, setNotice] = useState('');
@@ -80,7 +82,9 @@ export default function Home() {
       if (data.user) void refreshData(data.user);
       setLoading(false);
     }).catch(() => { if (active) { setError('Não foi possível validar sua sessão.'); setLoading(false); } });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true);
+      if (event === 'SIGNED_OUT') setRecoveryMode(false);
       setUser(session?.user ?? null);
       if (session?.user) void refreshData(session.user);
     });
@@ -145,6 +149,20 @@ export default function Home() {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Não foi possível criar o link. Confira as permissões da conta.');
     } finally { setBusy(false); }
+  }
+
+  async function updatePassword(event: FormEvent) {
+    event.preventDefault();
+    if (!supabase || newPassword.length < 8) { setError('A nova senha deve ter pelo menos 8 caracteres.'); return; }
+    setBusy(true); setError(''); setNotice('');
+    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    if (updateError) setError('Não foi possível atualizar a senha. Solicite um novo link de recuperação.');
+    else {
+      setRecoveryMode(false);
+      setNewPassword('');
+      setNotice('Senha atualizada. Você já pode continuar usando sua conta.');
+    }
+    setBusy(false);
   }
 
   async function cancelLink(link: LinkRow) {
@@ -230,6 +248,8 @@ export default function Home() {
     </div>
     <p className="small-note">Os dados são carregados da sua conta autenticada. Nenhum pagamento é confirmado nesta tela.</p>
   </section></main>;
+
+  if (user && recoveryMode) return <main className="auth-screen"><section className="auth-card"><div className="brand-mark">V</div><p className="eyebrow">RECUPERAÇÃO DE ACESSO</p><h1>Definir nova senha</h1>{error && <p className="alert error" role="alert">{error}</p>}<form onSubmit={updatePassword} className="form-stack"><label>Nova senha<input type="password" value={newPassword} onChange={e=>setNewPassword(e.target.value)} autoComplete="new-password" minLength={8} required /></label><button className="primary-button" disabled={busy}>{busy ? 'Salvando...' : 'Atualizar senha'}</button></form></section></main>;
 
   return <main className="app-shell">
     <header className="topbar"><div className="brand"><span className="brand-mark small-mark">V</span><span>Vello <b>Parcelamentos</b></span></div><div className="account"><span>{user.email}</span><button className="secondary-button" onClick={signOut}>Sair</button></div></header>
