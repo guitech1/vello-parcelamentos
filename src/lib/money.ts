@@ -1,5 +1,10 @@
 /** Operações monetárias em centavos inteiros. */
 
+export function centsToDecimal(cents: number): string {
+  if (!Number.isSafeInteger(cents) || cents < 0) throw new Error('Valor monetário inválido.');
+  return `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, '0')}`;
+}
+
 export function formatBRL(cents: number): string {
   if (!Number.isSafeInteger(cents)) throw new Error('Valor monetário inválido.');
   return (cents / 100).toLocaleString('pt-BR', {
