@@ -50,6 +50,9 @@ export function splitInstallments(totalCents: number, n: number): number[] {
   if (!Number.isInteger(n) || n < 1 || n > 10) {
     throw new Error('A quantidade de parcelas deve estar entre 1 e 10.');
   }
+  if (totalCents < n) {
+    throw new Error('O valor é insuficiente para gerar parcelas positivas em centavos.');
+  }
   const base = Math.floor(totalCents / n);
   return Array.from({ length: n }, (_, i) =>
     i < n - 1 ? base : totalCents - base * (n - 1)
