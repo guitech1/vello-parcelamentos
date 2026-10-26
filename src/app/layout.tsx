@@ -2,28 +2,27 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Vello Parcelamentos',
+  title: 'Vello Parcelamentos | Vallopag',
   description: 'Gestão premium de links de parcelamento, cobranças Pix e saques para lojistas.',
-  applicationName: 'Vello',
+  applicationName: 'Vallopag',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Vello',
+    title: 'Vallopag',
   },
   icons: {
     icon: [
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/logo.svg', type: 'image/svg+xml' },
+      { url: '/icon-192.svg', sizes: '192x192', type: 'image/svg+xml' },
+      { url: '/icon-512.svg', sizes: '512x512', type: 'image/svg+xml' },
     ],
-    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    apple: [{ url: '/icon-192.svg', sizes: '192x192', type: 'image/svg+xml' }],
   },
   manifest: '/manifest.webmanifest',
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0a0f0d',
+  themeColor: '#07110e',
   colorScheme: 'dark',
   width: 'device-width',
   initialScale: 1,
