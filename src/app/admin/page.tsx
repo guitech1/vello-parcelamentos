@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 
 type Row = Record<string, string | number | null | undefined>;
-type AdminData = { users: Row[]; links: Row[]; payments: Row[]; withdrawals: Row[] };
+type AdminData = { users: Row[]; links: Row[]; payments: Row[]; withdrawals: Row[]; merchants?: Row[] };
 
 const money = (value: unknown) => Number(value ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const date = (value: unknown) => (value ? new Date(String(value)).toLocaleString('pt-BR') : '—');
@@ -19,10 +19,18 @@ export default function AdminPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/overview', { cache: 'no-store' });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error || 'Não foi possível carregar o painel.');
-      setData(body as AdminData);
+      const [overviewRes, merchantsRes] = await Promise.all([
+        fetch('/api/admin/overview', { cache: 'no-store' }),
+        fetch('/api/admin/merchants', { cache: 'no-store' }),
+      ]);
+      const body = await overviewRes.json();
+      if (!overviewRes.ok) throw new Error(body.error || 'Não foi possível carregar o painel.');
+      let merchants: Row[] = [];
+      if (merchantsRes.ok) {
+        const m = await merchantsRes.json();
+        merchants = (m.merchants ?? []) as Row[];
+      }
+      setData({ ...(body as AdminData), merchants });
       setError('');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Não foi possível carregar o painel.');
@@ -39,7 +47,7 @@ export default function AdminPage() {
       setError('Para rejeitar, informe um motivo com pelo menos 4 caracteres.');
       return;
     }
-    if (action === 'approve' && !window.confirm('Aprovar esta solicitação para processamento manual? Isso não transfere o dinheiro automaticamente.')) return;
+    if (action === 'approve' && !window.confirm('Aprovar esta solicitação para processamento manual?')) return;
     setBusyId(id);
     setError('');
     try {
@@ -53,6 +61,31 @@ export default function AdminPage() {
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Não foi possível registrar a decisão.');
+    } finally {
+      setBusyId('');
+    }
+  }
+
+  async function reviewMerchant(userId: string, status: 'active' | 'rejected' | 'suspended') {
+    const reason = status !== 'active' ? (window.prompt('Informe o motivo:')?.trim() ?? '') : '';
+    if (status !== 'active' && reason.length < 4) {
+      setError('Informe um motivo com pelo menos 4 caracteres.');
+      return;
+    }
+    if (status === 'active' && !window.confirm('Aprovar este lojista e liberar o acesso à plataforma?')) return;
+    setBusyId(userId);
+    setError('');
+    try {
+      const response = await fetch('/api/admin/merchants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, status, reason }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || 'Não foi possível atualizar o lojista.');
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Não foi possível atualizar o lojista.');
     } finally {
       setBusyId('');
     }
@@ -98,7 +131,7 @@ export default function AdminPage() {
           <div>
             <p className="eyebrow">Acesso restrito</p>
             <h1>Painel administrativo</h1>
-            <p className="muted">Dados limitados aos primeiros 100 registros de cada lista. Decisões ficam registradas com usuário e horário.</p>
+            <p className="muted">Aprove contas de lojistas e gerencie saques. Dados limitados aos primeiros 100 registros.</p>
           </div>
           <button type="button" className="secondary-button" onClick={() => void load()} disabled={loading}>Atualizar</button>
         </div>
@@ -107,13 +140,42 @@ export default function AdminPage() {
           <section className="panel section-panel">Verificando permissões e carregando dados…</section>
         ) : data ? (
           <>
-            {table('Lojistas', data.users, [
-              ['Nome', 'full_name', (r) => String(r.full_name || '—')],
-              ['Loja', 'business_name', (r) => String(r.business_name || '—')],
-              ['E-mail', 'email', (r) => String(r.email || '—')],
-              ['Status', 'account_status', (r) => String(r.account_status || '—')],
-              ['Cadastro', 'created_at', (r) => date(r.created_at)],
-            ])}
+            <section className="panel section-panel admin-section">
+              <h2>Aprovação de lojistas <span className="admin-count">{(data.merchants ?? []).filter((m) => String(m.status) === 'pending').length}</span></h2>
+              <p className="muted" style={{ marginBottom: 12 }}>Contas com status pending ficam bloqueadas até a aprovação.</p>
+              {(data.merchants ?? []).length ? (
+                <div className="data-list">
+                  {(data.merchants ?? []).map((m) => (
+                    <div className="data-row" key={String(m.user_id)}>
+                      <div>
+                        <b>{String(m.business_name || m.full_name || m.user_id)}</b>
+                        <p>{String(m.full_name || '—')} · {date(m.created_at)}</p>
+                        <span className="status-tag">{String(m.status || 'pending')}</span>
+                      </div>
+                      <div className="admin-actions">
+                        {String(m.status) !== 'active' && (
+                          <button type="button" className="primary-button compact" disabled={busyId === String(m.user_id)} onClick={() => void reviewMerchant(String(m.user_id), 'active')}>
+                            {busyId === String(m.user_id) ? '…' : 'Aprovar'}
+                          </button>
+                        )}
+                        {String(m.status) !== 'rejected' && (
+                          <button type="button" className="secondary-button compact" disabled={busyId === String(m.user_id)} onClick={() => void reviewMerchant(String(m.user_id), 'rejected')}>
+                            Recusar
+                          </button>
+                        )}
+                        {String(m.status) === 'active' && (
+                          <button type="button" className="secondary-button compact" disabled={busyId === String(m.user_id)} onClick={() => void reviewMerchant(String(m.user_id), 'suspended')}>
+                            Suspender
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-state">Nenhum lojista cadastrado.</p>
+              )}
+            </section>
             {table('Links de parcelamento', data.links, [
               ['Descrição', 'description', (r) => String(r.description || '—')],
               ['Valor', 'total_amount', (r) => money(r.total_amount)],
@@ -162,7 +224,6 @@ export default function AdminPage() {
               ) : (
                 <p className="empty-state">Nenhuma solicitação de saque.</p>
               )}
-              <p className="small-note">Aprovar apenas autoriza o processamento manual; não executa uma transferência Pix.</p>
             </section>
           </>
         ) : null}
