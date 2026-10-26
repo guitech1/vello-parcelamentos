@@ -32,12 +32,20 @@ const NAV: { id: Tab; label: string; icon: React.ReactNode }[] = [
 
 function Orb3D() {
   return (
-    <div className="orb-scene" aria-hidden="true">
-      <div className="orb">
-        <div className="orb-ring" />
-        <div className="orb-ring" />
-        <div className="orb-core" />
+    <div className="phone-scene" aria-hidden="true">
+      <div className="phone-glow" />
+      <div className="phone-device">
+        <div className="phone-island" />
+        <div className="phone-status"><span>9:41</span><span>●  ▮ ▰</span></div>
+        <div className="phone-welcome"><span className="phone-mark">V</span><div><small>Bem-vindo à</small><b>Vello Parcelamentos</b></div><span className="phone-avatar">V</span></div>
+        <div className="phone-balance"><small>Saldo disponível</small><strong>R$ 12.840,50</strong><span>Visão financeira da sua loja</span></div>
+        <div className="phone-actions"><span><i>↗</i> Receber</span><span><i>⇄</i> Transferir</span></div>
+        <div className="phone-section"><b>Acesso rápido</b><span>Suas ferramentas em um só lugar</span></div>
+        <div className="phone-tiles"><div><i>↗</i><small>Links</small></div><div><i>▤</i><small>Parcelas</small></div><div><i>⇧</i><small>Saques</small></div><div><i>⌘</i><small>Integração</small></div></div>
+        <div className="phone-chart"><div><span>Recebimentos</span><b>+18,6%</b></div><div className="chart-bars"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div></div>
+        <div className="phone-bottom"><span>⌂</span><span>♡</span><span>◉</span><span>▣</span><span>○</span></div>
       </div>
+      <div className="phone-caption"><span>CONTROLE FINANCEIRO</span><b>Seu negócio. Em movimento.</b></div>
     </div>
   );
 }
@@ -476,6 +484,7 @@ export default function Home() {
           <button type="button" className="secondary-button" onClick={signOut}>Sair</button>
         </div>
       </header>
+      <NavCircles tab={tab} setTab={(t) => { setTab(t); setError(''); setNotice(''); }} mobile />
       <div className="layout">
         <aside className="sidebar">
           <p className="eyebrow">Área do lojista</p>
@@ -635,7 +644,6 @@ export default function Home() {
           )}
         </section>
       </div>
-      <NavCircles tab={tab} setTab={(t) => { setTab(t); setError(''); setNotice(''); }} mobile />
     </main>
   );
 }
