@@ -108,7 +108,7 @@ export default function Home() {
       setProfilePixKey(profileResult.data.pix_key ?? '');
       setProfilePixType(profileResult.data.pix_key_type ?? 'random');
       const st = profileResult.data as { status?: string; account_status?: string };
-      setAccountStatus(st.status ?? st.account_status ?? 'pending');
+      setAccountStatus(st.account_status ?? st.status ?? 'pending');
     } else {
       setAccountStatus('pending');
     }
