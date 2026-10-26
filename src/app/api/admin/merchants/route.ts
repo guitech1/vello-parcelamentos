@@ -113,7 +113,6 @@ export async function POST(request: NextRequest) {
     .from('profiles')
     .update({
       account_status: status,
-      status,
       updated_at: new Date().toISOString(),
     } as Record<string, string>)
     .eq('user_id', userId);
