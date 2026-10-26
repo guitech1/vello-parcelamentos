@@ -93,7 +93,7 @@ export default function Home() {
       supabase.from('payment_links').select('id,public_token,description,total_amount,installment_count,status,created_at').eq('merchant_id', currentUser.id).order('created_at', { ascending: false }).limit(50),
       supabase.from('installments').select('id,amount,status,due_at,installment_number').eq('merchant_id', currentUser.id).order('due_at', { ascending: true }).limit(100),
       supabase.from('support_tickets').select('id,subject,status,created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(50),
-      supabase.from('profiles').select('full_name,business_name,phone,pix_key,pix_key_type,status,account_status').eq('user_id', currentUser.id).maybeSingle(),
+      supabase.from('profiles').select('full_name,business_name,phone,pix_key,pix_key_type,account_status').eq('user_id', currentUser.id).maybeSingle(),
       supabase.from('withdrawals').select('id,amount,status,created_at').eq('merchant_id', currentUser.id).order('created_at', { ascending: false }).limit(50),
     ]);
     if (linkResult.error) setError('Não foi possível carregar os links.');
@@ -107,8 +107,8 @@ export default function Home() {
       setProfilePhone(profileResult.data.phone ?? '');
       setProfilePixKey(profileResult.data.pix_key ?? '');
       setProfilePixType(profileResult.data.pix_key_type ?? 'random');
-      const st = profileResult.data as { status?: string; account_status?: string };
-      setAccountStatus(st.account_status ?? st.status ?? 'pending');
+      const st = profileResult.data as { account_status?: string };
+      setAccountStatus(st.account_status ?? 'pending');
     } else {
       setAccountStatus('pending');
     }
