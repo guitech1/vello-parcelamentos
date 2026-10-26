@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
@@ -20,7 +20,7 @@ const supabase = supabaseUrl && supabaseKey ? createClient() : null;
 const money = (value: number | string) => Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const date = (value: string) => new Date(value).toLocaleDateString('pt-BR');
 
-const NAV: { id: Tab; label: string; icon: React.ReactNode }[] = [
+const NAV: { id: Tab; label: string; icon: ReactNode }[] = [
   { id: 'overview', label: 'Início', icon: <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z"/></svg> },
   { id: 'links', label: 'Links', icon: <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> },
   { id: 'installments', label: 'Parcelas', icon: <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg> },
@@ -93,7 +93,7 @@ export default function Home() {
       supabase.from('payment_links').select('id,public_token,description,total_amount,installment_count,status,created_at').eq('merchant_id', currentUser.id).order('created_at', { ascending: false }).limit(50),
       supabase.from('installments').select('id,amount,status,due_at,installment_number').eq('merchant_id', currentUser.id).order('due_at', { ascending: true }).limit(100),
       supabase.from('support_tickets').select('id,subject,status,created_at').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(50),
-      supabase.from('profiles').select('full_name,business_name,phone,pix_key,pix_key_type,status').eq('user_id', currentUser.id).maybeSingle(),
+      supabase.from('profiles').select('full_name,business_name,phone,pix_key,pix_key_type,status,account_status').eq('user_id', currentUser.id).maybeSingle(),
       supabase.from('withdrawals').select('id,amount,status,created_at').eq('merchant_id', currentUser.id).order('created_at', { ascending: false }).limit(50),
     ]);
     if (linkResult.error) setError('Não foi possível carregar os links.');
@@ -107,7 +107,8 @@ export default function Home() {
       setProfilePhone(profileResult.data.phone ?? '');
       setProfilePixKey(profileResult.data.pix_key ?? '');
       setProfilePixType(profileResult.data.pix_key_type ?? 'random');
-      setAccountStatus(profileResult.data.status ?? 'pending');
+      const st = profileResult.data as { status?: string; account_status?: string };
+      setAccountStatus(st.status ?? st.account_status ?? 'pending');
     } else {
       setAccountStatus('pending');
     }
@@ -413,7 +414,7 @@ export default function Home() {
               <p className="muted">Gateway: <strong style={{ color: 'var(--text)' }}>{selectedGateway === 'vello' ? 'Vello' : 'FluxPay'}</strong></p>
               <div className="cred-block"><label>Identificador</label><div className="cred-row"><code>{sessionCreds.id}</code><button type="button" className="copy-btn" onClick={() => copyText('id', sessionCreds.id)}>{copied === 'id' ? 'Copiado' : 'Copiar'}</button></div></div>
               <div className="cred-block"><label>Chave</label><div className="cred-row"><code>{sessionCreds.key}</code><button type="button" className="copy-btn" onClick={() => copyText('key', sessionCreds.key)}>{copied === 'key' ? 'Copiado' : 'Copiar'}</button></div></div>
-              <p className="security-note">Credenciais exibidas apenas nesta sessão e não são armazenadas. Em produção, a geração real depende da conexão com o serviço da gateway.</p>
+              <p className="security-note">Credenciais exibidas apenas nesta sessão e não são armazenadas.</p>
               <div className="confirm-box">
                 <h3>Guarde suas credenciais de integração</h3>
                 <p>Confirme que armazenou as informações necessárias antes de continuar.</p>
